@@ -1,6 +1,7 @@
+
 const express = require('express');
 const { Pool } = require('pg');
-const dotenv = require('dotenv').config();
+require('dotenv').config();
 
 // Create express app
 const app = express();
@@ -13,7 +14,7 @@ const pool = new Pool({
     database: process.env.PSQL_DATABASE,
     password: process.env.PSQL_PASSWORD,
     port: process.env.PSQL_PORT,
-    ssl: {rejectUnauthorized: false}
+    ssl: { rejectUnauthorized: false }
 });
 
 // Add process hook to shutdown pool
@@ -26,28 +27,29 @@ process.on('SIGINT', function() {
 app.set("view engine", "ejs");
 
 app.get('/', (req, res) => {
-    const data = {name: 'Mario'};
+    const data = { name: 'Mario' };
     res.render('index', data);
 });
 
 app.get('/user', (req, res) => {
-    const teammembers = [];
-    pool
-        .query('SELECT * FROM teammates;')
+    pool.query('SELECT * FROM teammates;')
         .then(query_res => {
-            for (let i = 0; i < query_res.rowCount; i++){
-                teammembers.push(query_res.rows[i]);
-            }
-            const data = {teammembers: teammembers};
+            const teammembers = query_res.rows;
+            const data = { teammembers: teammembers };
             console.log(teammembers);
-            res.render('user', data);        
+            res.render('user', data);
         })
-        .catch(() => {
+        .catch(err => {
+            console.error('Database query failed:', err);
             res.status(503).send('Unable to load team members from the database.');
         });
 });
 
+// Run locally, but let Vercel handle requests in production
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Example app listening at http://localhost:${port}`);
+    });
+}
 
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`);
-});
+module.exports = app;
