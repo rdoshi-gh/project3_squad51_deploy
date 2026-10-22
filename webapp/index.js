@@ -24,7 +24,10 @@ process.on('SIGINT', function() {
     process.exit(0);
 });
 
+const path = require('path');
+
 app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 app.get('/', (req, res) => {
     const data = { name: 'Mario' };
