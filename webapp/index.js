@@ -34,7 +34,7 @@ app.get('/', (req, res) => {
     res.render('index', data);
 });
 
-app.get('/user', (req, res) => {
+app.get('/user', (req, res) => {app.set("views", path.join(__dirname, "views"));
     pool.query('SELECT * FROM teammates;')
         .then(query_res => {
             const teammembers = query_res.rows;
