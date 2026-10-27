@@ -1,0 +1,19 @@
+<%- include('partials/head', { title: 'Manager', script: 'manager' }) %>
+<body data-view="manager">
+    <div class="workspace">
+        <aside class="sidebar panel">
+            <div><h1>MANAGER</h1><p class="employee-name"><%= employee.name %></p></div>
+            <nav aria-label="Manager pages" id="manager-nav">
+                <% const pages = [['dashboard','Dashboard'], ['orders','Order History'], ['inventory','Inventory'], ['usage','Product Usage'], ['restocking','Restocking'], ['employees','Employees'], ['menu','Menu Items'], ['reports','Reports']]; %>
+                <% for (const [key, label] of pages) { %><a href="#<%= key %>" data-page="<%= key %>"><%= label %></a><% } %>
+            </nav>
+            <button id="logout" class="logout">Log Out</button>
+        </aside>
+        <main id="manager-main" class="content" tabindex="-1">
+            <p class="panel" role="status">Loading dashboard…</p>
+        </main>
+    </div>
+    <dialog id="modal" aria-labelledby="modal-title"><div id="modal-body"></div></dialog>
+    <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

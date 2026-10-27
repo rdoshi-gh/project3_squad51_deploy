@@ -1,7 +1,12 @@
-<!DOCTYPE html>
-<head>
-    <title>Home Page</title>
-</head>
-<body>
-    <p>This is <%=name%>'s homepage.</p>
+<%- include('partials/head', { title: 'Portal', script: null }) %>
+<body class="center-page">
+    <main class="entry-card panel">
+        <h1>Popping POS (Team 51)</h1>
+        <p>Point of sale and inventory management</p>
+        <div class="stack portal-actions">
+            <a href="/cashier/login" class="button primary">Cashier</a>
+            <a href="/manager/login" class="button">Manager</a>
+        </div>
+    </main>
 </body>
+</html>

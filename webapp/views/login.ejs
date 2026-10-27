@@ -1,0 +1,16 @@
+<%- include('partials/head', { title: `${view === 'manager' ? 'Manager' : 'Cashier'} Sign In`, script: 'login' }) %>
+<body data-view="<%= view %>" class="center-page">
+    <main class="entry-card panel">
+        <p class="eyebrow">Popping POS</p>
+        <h1><%= view === 'manager' ? 'Manager' : 'Cashier' %> Sign In</h1>
+        <form id="login-form" class="stack">
+            <label for="employee">Employee</label>
+            <select id="employee" name="employee" required disabled><option value="">Loading employees…</option></select>
+            <p id="login-error" class="error" role="alert"></p>
+            <button type="submit" class="primary" id="sign-in" disabled>Sign In</button>
+            <button type="button" id="retry-login" hidden>Retry Loading Employees</button>
+        </form>
+        <p class="note">Select your employee record to open the <%= view %> workspace.</p>
+    </main>
+</body>
+</html>

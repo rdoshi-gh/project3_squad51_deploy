@@ -1,0 +1,25 @@
+<%- include('partials/head', { title: 'Cashier', script: 'cashier' }) %>
+<body data-view="cashier">
+    <main class="cashier-shell">
+        <header class="panel cashier-header"><div><h1>CASHIER</h1><p><%= employee.name %> · Popping POS</p></div><div class="toolbar"><button id="profile" data-name="<%= employee.name %>" data-role="<%= employee.role %>" data-employee-id="<%= employee.employeeId %>">User Profile</button><button id="logout">Log Out</button></div></header>
+        <div id="cashier-message" class="error" role="alert"></div>
+        <div class="cashier-columns">
+            <section class="panel menu-panel" aria-labelledby="menu-title">
+                <h2 id="menu-title">Menu</h2>
+                <label for="menu-search" class="sr-only">Search menu</label><input id="menu-search" type="search" placeholder="Search menu">
+                <nav id="categories" class="category-row" aria-label="Menu categories"></nav>
+                <div id="menu-grid" class="menu-grid" aria-live="polite"><p>Loading menu…</p></div>
+            </section>
+            <section class="panel order-panel" aria-labelledby="order-title">
+                <h2 id="order-title">Current Order</h2>
+                <div class="toolbar compact"><button id="undo">Undo</button><button id="redo">Redo</button><button id="reset-order">Reset Order</button></div>
+                <div id="order-lines"></div>
+                <div class="order-total"><span>Total</span><strong id="order-total">$0.00</strong></div>
+                <button id="checkout" class="primary full">Review Order</button>
+            </section>
+        </div>
+    </main>
+    <dialog id="modal" aria-labelledby="modal-title"><div id="modal-body"></div></dialog>
+    <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>
