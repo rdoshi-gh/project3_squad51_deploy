@@ -1,4 +1,5 @@
 const express = require('express');
+const ejs = require('ejs');
 const path = require('node:path');
 const { db: defaultDb } = require('./lib/db');
 const { sessions } = require('./lib/session');
@@ -10,6 +11,8 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     const session = sessions(secret);
     const route = handler => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
     app.disable('x-powered-by');
+    // Import the renderer explicitly so Vercel includes it in the function bundle.
+    app.engine('ejs', ejs.renderFile);
     app.set('view engine', 'ejs');
     app.set('views', path.join(__dirname, 'views'));
     app.use((req, res, next) => {
