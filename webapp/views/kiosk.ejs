@@ -1,0 +1,49 @@
+<%- include('partials/head', { title: 'Customer Kiosk', script: 'kiosk' }) %>
+<body class="kiosk-page" data-view="kiosk">
+    <a class="kiosk-skip-link" href="#kiosk-menu">Skip to menu</a>
+    <header class="kiosk-topbar">
+        <a class="kiosk-brand" href="/kiosk" aria-label="Popping Boba home">
+            <span class="kiosk-brand-mark" aria-hidden="true">✿</span>
+            <span><strong>Popping</strong><small>BOBA & TEA</small></span>
+        </a>
+        <p class="kiosk-top-note">MADE FRESH, JUST FOR YOU</p>
+        <span class="kiosk-order-badge" aria-label="Your order"><span aria-hidden="true">♡</span> Your order <strong id="kiosk-cart-count">0</strong></span>
+    </header>
+
+    <main class="kiosk-main">
+        <section class="kiosk-hero" aria-labelledby="kiosk-welcome">
+            <div class="kiosk-hero-copy">
+                <p class="kiosk-eyebrow">A LITTLE SIP OF HAPPY</p>
+                <h1 id="kiosk-welcome">Your kind of<br><em>tea time.</em></h1>
+                <p>Pick a favorite, make it yours, and we'll make it fresh.</p>
+                <a class="kiosk-hero-cta" href="#kiosk-menu">Find your drink <span aria-hidden="true">↓</span></a>
+            </div>
+            <div class="kiosk-hero-art" aria-hidden="true">
+                <div class="kiosk-sun"></div><div class="kiosk-leaf leaf-one"></div><div class="kiosk-leaf leaf-two"></div>
+                <div class="kiosk-cup"><div class="kiosk-cup-lid"></div><div class="kiosk-cup-straw"></div><div class="kiosk-cup-tea"></div><div class="kiosk-pearls">● ●<br> ● ● ●<br>● ●</div><span>POPPING<br>BOBA</span></div>
+                <span class="kiosk-sparkle sparkle-one">✳</span><span class="kiosk-sparkle sparkle-two">✦</span>
+            </div>
+        </section>
+
+        <section id="kiosk-menu" class="kiosk-menu-section" aria-labelledby="kiosk-menu-title">
+            <div class="kiosk-section-heading"><div><p class="kiosk-eyebrow">THE GOOD STUFF</p><h2 id="kiosk-menu-title">Find your sip</h2></div><p>Made to order. Made for you.</p></div>
+            <div id="kiosk-message" class="kiosk-message" role="alert"></div>
+            <div class="kiosk-menu-tools">
+                <nav id="kiosk-categories" class="kiosk-categories" aria-label="Filter drinks"></nav>
+                <label class="kiosk-search"><span class="sr-only">Search drinks</span><span aria-hidden="true">⌕</span><input id="kiosk-search" type="search" placeholder="Find a favorite…" autocomplete="off"></label>
+            </div>
+            <div id="kiosk-menu-grid" class="kiosk-menu-grid" aria-live="polite"><p class="kiosk-empty">Getting the good stuff ready…</p></div>
+        </section>
+
+        <section class="kiosk-bottom-note" aria-label="Ordering information"><span aria-hidden="true">✿</span><p><strong>A little note from us</strong><br>Every drink is made fresh. Customize sweetness, ice, and toppings to make it yours.</p></section>
+    </main>
+
+    <aside class="kiosk-cart-bar" aria-label="Your order summary">
+        <div class="kiosk-cart-summary"><span class="kiosk-cart-icon" aria-hidden="true">♡</span><div><strong id="kiosk-cart-label">Your order is waiting</strong><small id="kiosk-cart-hint">Add a drink to get started</small></div></div>
+        <div class="kiosk-cart-total"><span>Subtotal</span><strong id="kiosk-cart-total">$0.00</strong></div>
+        <button id="kiosk-review" class="kiosk-checkout" type="button" disabled>Review order <span aria-hidden="true">→</span></button>
+    </aside>
+    <dialog id="kiosk-dialog" class="kiosk-dialog" aria-labelledby="kiosk-dialog-title"><div id="kiosk-dialog-body"></div></dialog>
+    <div id="kiosk-announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>
