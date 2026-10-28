@@ -2,7 +2,16 @@
 window.POS = (() => {
     const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value) || 0);
     const numeric = value => new Intl.NumberFormat('en-US', { maximumFractionDigits: 4 }).format(Number(value) || 0);
-    const dateTime = value => value ? new Date(value).toLocaleString() : '—';
+    const dateTime = value => {
+        if (!value) return '—';
+
+        const timestamp = typeof value === 'string' &&
+            !/(?:Z|[+-]\d{2}:?\d{2})$/i.test(value)
+            ? `${value}Z`
+            : value;
+
+        return new Date(timestamp).toLocaleString();
+    };
     function presetDates(range, days) {
         const first = new Date(`${range.last}T00:00:00Z`);
         if (days !== null) first.setUTCDate(first.getUTCDate() - days + 1);
