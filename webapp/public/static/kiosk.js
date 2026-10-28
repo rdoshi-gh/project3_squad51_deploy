@@ -79,7 +79,7 @@
         });
         const price = make('strong', {}, '');
         const form = make('form', { class: 'kiosk-form-stack' });
-        const field = (label, control) => make('div', { class: 'kiosk-form-field' }, make('label', {}, label), control);
+        const field = (label, control) => make('div', { class: 'kiosk-form-field' }, make('label', {}, label, control));
         form.append(field('How many?', quantity), field('Sweetness', sweetness), field('Ice level', ice));
         if (toppingControls.length) form.append(make('fieldset', {}, make('legend', {}, 'Make it extra special'), make('div', { class: 'kiosk-topping-options' }, toppingControls.map(({ topping, check }) => make('label', {}, check, `${topping.name} (+${money(topping.price)})`)))));
         const preview = () => {
@@ -130,7 +130,6 @@
         renderLines(); showDialog('One last look', content);
     }
     async function placeOrder(error, submit) {
-        // The order endpoint is added in the database integration commit.
         if (busy) return;
         busy = true; submit.disabled = true; drawCartSummary(); error.textContent = '';
         try {

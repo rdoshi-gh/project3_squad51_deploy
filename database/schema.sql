@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS inventory_items (
 
 CREATE TABLE IF NOT EXISTS customer_orders (
     order_id         INTEGER       PRIMARY KEY,
-    employee_id      INTEGER       NOT NULL REFERENCES employees(employee_id),
+    employee_id      INTEGER       REFERENCES employees(employee_id),
     order_timestamp  TIMESTAMP     NOT NULL,
     total_price      NUMERIC(8,2)  NOT NULL
 );

@@ -149,6 +149,12 @@ out of Git. Review the authentication scope above before publishing. Import
 through Vercel's Git integration, or run `vercel --prod` from `webapp/` only
 when the team is ready to publish.
 
+## Customer Kiosk
+
+The public Customer Kiosk is available at `/kiosk` and is linked from the Portal Hub. It reads menu items from `/api/kiosk/menu`, supports drink search and category filters, sweetness/ice/topping customizations, cart editing, and public order submission. Kiosk orders use the existing `customer_orders` and `order_items` tables and decrement inventory through the shared order service.
+
+Before enabling kiosk checkout against the existing Project 2 database, run `database/project2/sql_files/allow_kiosk_orders.sql` once. It allows `employee_id` to be `NULL` for customer-submitted orders; manager reports already use a left join when showing employee names. Do not run this migration against a different database without reviewing it.
+
 ## Remaining Project 3 work
 
 This is the Project 2 migration, not a complete Project 3 submission. Customer

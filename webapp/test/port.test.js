@@ -31,7 +31,7 @@ test('deployment entry point exports Express and static URLs map to public files
     const app = require('../index');
     assert.equal(typeof app, 'function');
     assert.equal(typeof app.handle, 'function');
-    for (const asset of ['style.css', 'common.js', 'login.js', 'manager.js', 'cashier.js']) {
+    for (const asset of ['style.css', 'common.js', 'login.js', 'manager.js', 'cashier.js', 'kiosk.js']) {
         assert.ok(readFileSync(path.join(__dirname, '../public/static', asset)).length);
     }
 });
@@ -133,4 +133,27 @@ test('portal renders offline; manager APIs require a manager session', async (t)
     assert.match(await (await fetch(base)).text(), /Popping POS.*Team 51/s);
     assert.equal((await fetch(`${base}/api/manager/inventory`)).status, 401);
     assert.equal((await fetch(`${base}/manager/login`)).status, 200);
+});
+
+
+test('customer kiosk is public and can submit orders without an employee session', async (t) => {
+    const db = orderDb(5);
+    const app = createApp({ db, secret: 'test-only-secret-that-is-long-enough' });
+    const server = app.listen(0, '127.0.0.1');
+    t.after(() => new Promise(resolve => server.close(resolve)));
+    await new Promise(resolve => server.once('listening', resolve));
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const page = await fetch(`${base}/kiosk`);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /Find your sip/);
+    const response = await fetch(`${base}/api/kiosk/orders`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lines: [{ menuItemId: 1, quantity: 1, sweetness: 75, ice: 'Regular', toppings: [] }] })
+    });
+    assert.equal(response.status, 201);
+    const result = await response.json();
+    assert.equal(result.order_id, 10);
+    assert.equal(result.total, 5.25);
+    const insert = db.calls.find(call => call.sql.includes('INSERT INTO customer_orders'));
+    assert.equal(insert.values[1], null, 'kiosk order should not be attributed to a cashier');
 });
