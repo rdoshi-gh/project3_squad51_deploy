@@ -55,7 +55,7 @@
             });
             dialog.close(); announce(`${item.name} ${existing ? 'updated' : 'added'}.`);
         });
-        modal(existing ? `Edit ${item.name}` : item.name, form);
+        modal(existing ? `Edit ${item.name}` : item.name, form, [], { showClose: false });
     }
     function checkout() {
         const summary = table(['Menu Item', 'Quantity', 'Amount'], order.map(line => [h('div', {}, h('strong', {}, find(line.menuItemId).name), h('p', { class: 'note' }, options(line))), line.quantity, money(each(line) * line.quantity / 100)]));
@@ -63,18 +63,17 @@
         const complete = button('Complete Order', async () => {
             if (committing) return;
             committing = true; complete.disabled = true; back.disabled = true; checkoutError.textContent = '';
-            const close = dialog.querySelector('.dialog-header button'); close.disabled = true;
             try {
                 const result = await send('/api/orders', 'POST', { lines: order });
                 order = []; undo = []; redo = []; drawOrder();
                 modal('Order Complete', h('div', { class: 'stack' }, h('h3', {}, `Order #${result.order_id}`), h('p', {}, `Total: ${money(result.total)}`), h('p', {}, 'The order has been recorded and inventory updated.')),
-                    [button('Start New Order', () => dialog.close(), true)]);
+                    [button('Start New Order', () => dialog.close(), true)], { showClose: false });
                 announce(`Order ${result.order_id} completed.`);
             } catch (err) { checkoutError.textContent = err.message; }
-            finally { committing = false; complete.disabled = false; back.disabled = false; close.disabled = false; }
+            finally { committing = false; complete.disabled = false; back.disabled = false; }
         }, true);
         const back = button('Back to Order', () => dialog.close());
-        modal('Review Order', h('div', { class: 'stack' }, summary, h('div', { class: 'order-total' }, h('span', {}, 'Total'), h('strong', {}, money(total() / 100))), checkoutError), [back, complete]);
+        modal('Review Order', h('div', { class: 'stack' }, summary, h('div', { class: 'order-total' }, h('span', {}, 'Total'), h('strong', {}, money(total() / 100))), checkoutError), [back, complete], { showClose: false });
     }
     dialog.addEventListener('cancel', event => { if (committing) event.preventDefault(); });
     document.getElementById('menu-search').addEventListener('input', drawMenu);
