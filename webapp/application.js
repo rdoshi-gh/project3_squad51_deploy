@@ -63,7 +63,10 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         session.signIn(res, employee, view);
         res.json({ location: `/${view}` });
     }));
-    app.post('/api/logout', (req, res) => { res.clearCookie('popping_session'); res.json({ ok: true }); });
+    app.post('/api/logout', (req, res) => {
+        res.clearCookie('popping_session');
+        res.json({ ok: true, location: '/' });
+    });
     app.get('/api/menu', requireSession(), route(async (req, res) => res.json(await db.query('SELECT * FROM menu_items ORDER BY category, name, menu_item_id'))));
     app.get('/api/kiosk/menu', route(async (req, res) => res.json(await db.query('SELECT menu_item_id, name, category, price FROM menu_items ORDER BY category, name, menu_item_id'))));
     app.post('/api/kiosk/orders', route(async (req, res) => {
