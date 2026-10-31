@@ -40,9 +40,9 @@ kept rather than replaced. Never commit passwords or the real session secret.
 `PORT` can override the default 3000. Use a currently supported Node.js runtime
 with the built-in `node:test` runner (tested locally with Node 22).
 
-The portal opens the cashier or manager employee-selection screen. Log Out
-returns to that workspace's sign-in screen. The employee workspaces do not link
-to each other or to the portal.
+The portal opens the cashier or manager employee-selection screen. Confirming
+Log Out clears the session and returns to the existing portal to choose a view.
+Other navigation stays within the selected employee workspace.
 
 ## Included workflows
 

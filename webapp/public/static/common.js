@@ -114,7 +114,8 @@ window.POS = (() => {
         modal('User Profile', h('div', { class: 'stack' }, h('strong', {}, employee.name), h('p', {}, `Role: ${employee.role}`), h('p', {}, `Employee #${employee.employeeId}`)));
     });
     document.getElementById('logout')?.addEventListener('click', () => confirm('Log Out', 'Leave this workspace?', async () => {
-        await send('/api/logout', 'POST'); location.assign(`/${document.body.dataset.view}/login`);
+        const result = await send('/api/logout', 'POST');
+        location.replace(result.location || '/');
     }, 'Log Out'));
     return { h, api, send, button, field, input, select, panel, table, metrics, chart, modal, confirm, announce, money, numeric, dateTime, presetDates };
 })();
