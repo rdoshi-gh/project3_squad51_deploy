@@ -90,9 +90,9 @@ window.POS = (() => {
             h('div', { class: 'chart-row' }, h('span', {}, point.label), h('div', { class: 'chart-track' }, h('progress', { max, value: point.value, 'aria-label': `${point.label}: ${numeric(point.value)} ${unit}` })),
                 h('span', { class: 'chart-value' }, unit === 'USD' ? money(point.value) : numeric(point.value))))));
     }
-    function modal(title, content, footer = []) {
+    function modal(title, content, footer = [], { showClose = true } = {}) {
         const dialog = document.getElementById('modal');
-        document.getElementById('modal-body').replaceChildren(h('div', { class: 'dialog-header' }, h('h2', { id: 'modal-title' }, title), button('Close', () => dialog.close())), content,
+        document.getElementById('modal-body').replaceChildren(h('div', { class: 'dialog-header' }, h('h2', { id: 'modal-title' }, title), showClose ? button('Close', () => dialog.close()) : null), content,
             ...(footer.length ? [h('div', { class: 'dialog-footer' }, footer)] : []));
         if (!dialog.open) dialog.showModal();
         else dialog.querySelector('button, input, select')?.focus();
@@ -106,7 +106,7 @@ window.POS = (() => {
             catch (err) { error.textContent = err.message; }
             finally { submit.disabled = false; }
         }, true);
-        modal(title, h('div', { class: 'stack' }, h('p', {}, message), error), [button('Cancel', () => document.getElementById('modal').close()), submit]);
+        modal(title, h('div', { class: 'stack' }, h('p', {}, message), error), [button('Cancel', () => document.getElementById('modal').close()), submit], { showClose: false });
     }
     function announce(message) { const target = document.getElementById('announcement'); if (target) target.textContent = message; }
     document.getElementById('profile')?.addEventListener('click', event => {

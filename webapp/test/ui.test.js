@@ -44,3 +44,21 @@ test('failed logout remains visible and can be retried', async t => {
     await flush();
     assert.deepEqual(ui.navigation, [{ method: 'replace', url: '/' }]);
 });
+
+test('logout confirmation has one Cancel control and its primary action', async t => {
+    const ui = await createUi();
+    t.after(() => ui.dom.window.close());
+    ui.document.getElementById('logout').click();
+    assert.deepEqual([...ui.dialog.querySelectorAll('button')].map(control => control.textContent), ['Cancel', 'Log Out']);
+    ui.findButton('Cancel').click();
+    assert.equal(ui.dialog.open, false);
+});
+
+test('read-only profile dialogs retain a single Close control', async t => {
+    const ui = await createUi();
+    t.after(() => ui.dom.window.close());
+    ui.document.getElementById('profile').click();
+    assert.deepEqual([...ui.dialog.querySelectorAll('button')].map(control => control.textContent), ['Close']);
+    ui.findButton('Close').click();
+    assert.equal(ui.dialog.open, false);
+});
