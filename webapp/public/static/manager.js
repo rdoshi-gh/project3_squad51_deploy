@@ -105,7 +105,7 @@
             } catch (err) { error.textContent = err.message; }
             finally { save.disabled = false; }
         });
-        modal(`${row ? 'Edit' : 'Add'} ${def.singular}`, form);
+        modal(`${row ? 'Edit' : 'Add'} ${def.singular}`, form, [], { showClose: false });
     }
 
     async function inventoryReview() {
