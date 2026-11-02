@@ -6,6 +6,10 @@ const { sessions } = require('./lib/session');
 const { InputError, id, text, number, dateRange } = require('./lib/validation');
 const { getReport, getRange, LAST_WEEK } = require('./lib/reports');
 const { saveOrder } = require('./lib/orders');
+const {
+    getKitchenOrders,
+    markKitchenOrderReady
+} = require('./lib/kitchen');
 
 function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express() } = {}) {
     const session = sessions(secret);
@@ -73,6 +77,15 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         res.status(201).json(await saveOrder(db, 6, req.body.lines));
     }));
     app.post('/api/orders', requireSession('cashier'), route(async (req, res) => res.status(201).json(await saveOrder(db, req.session.employeeId, req.body.lines))));
+    app.use('/api/kitchen', requireSession('kitchen'));
+
+    app.get('/api/kitchen/orders', route(async (req, res) => {
+        res.json(await getKitchenOrders(db));
+    }));
+
+    app.patch('/api/kitchen/orders/:id/ready', route(async (req, res) => {
+        res.json(await markKitchenOrderReady(db, id(req.params.id)));
+    }));
     app.use('/api/manager', requireSession('manager'));
     app.get('/api/manager/range', route(async (req, res) => res.json(await getRange(db))));
     app.get('/api/manager/reports', route(async (req, res) => res.json(await getReport(db, req.query.type, req.query.start, req.query.end))));
