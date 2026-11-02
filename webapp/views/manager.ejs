@@ -7,6 +7,7 @@
                 <% const pages = [['dashboard','Dashboard'], ['orders','Order History'], ['inventory','Inventory'], ['usage','Product Usage'], ['restocking','Restocking'], ['employees','Employees'], ['menu','Menu Items'], ['reports','Reports']]; %>
                 <% for (const [key, label] of pages) { %><a href="#<%= key %>" data-page="<%= key %>"><%= label %></a><% } %>
             </nav>
+            <a href="/" class="button">Back to Portal</a>
             <button id="logout" class="logout">Log Out</button>
         </aside>
         <main id="manager-main" class="content" tabindex="-1">
