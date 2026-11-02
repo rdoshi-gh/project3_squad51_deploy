@@ -212,3 +212,14 @@ legend { font-weight: 600; padding: 0 8px; }
 @media (max-width: 800px) { .kiosk-hero { grid-template-columns: 1fr; } .kiosk-hero-art { min-height: 170px; } .kiosk-menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .kiosk-menu-tools { align-items: stretch; flex-direction: column; } .kiosk-search { width: 100%; } }
 @media (max-width: 520px) { .kiosk-page { padding-bottom: 155px; } .kiosk-topbar { flex-wrap: wrap; padding: 14px 16px; } .kiosk-top-note { display: none; } .kiosk-main { padding: 18px 14px; } .kiosk-hero { padding: 22px; } .kiosk-section-heading { align-items: start; flex-direction: column; gap: 6px; } .kiosk-section-heading h2 { font-size: 26px; } .kiosk-menu-grid { grid-template-columns: 1fr 1fr; gap: 10px; } .kiosk-drink-card { padding: 12px; } .kiosk-drink-art { min-height: 70px; font-size: 30px; } .kiosk-drink-card h3 { font-size: 16px; } .kiosk-cart-bar { flex-wrap: wrap; gap: 10px; padding: 10px 14px; } .kiosk-cart-summary { flex: 1 1 60%; } .kiosk-cart-total { text-align: right; } .kiosk-checkout { flex: 1 1 100%; } }
 @media (prefers-reduced-motion: reduce) { .kiosk-drink-card { transition: none; } }
+
+/* Portal Hub: borrows the customer kiosk's palette. */
+.portal-page { --p-green: #356b4b; --p-light-green: #eaf2ec; --p-muted: #666; --p-border: #ddd; background: #f7f7f5; }
+.portal-card { max-width: 640px; background: white; border: 1px solid var(--p-border); border-radius: 12px; }
+.portal-eyebrow { color: var(--p-green); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.portal-card h1 { margin: 8px 0 6px; font-size: 32px; }
+.portal-subtitle { color: var(--p-muted); }
+.portal-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.portal-button { display: flex; align-items: center; justify-content: center; min-height: 96px; padding: 16px; border-radius: 6px; background: var(--p-green); color: white; font-size: 18px; font-weight: 700; text-align: center; text-decoration: none; }
+.portal-button:hover { background: #2a563c; }
+@media (max-width: 520px) { .portal-actions { grid-template-columns: 1fr; } .portal-button { min-height: 64px; } }
