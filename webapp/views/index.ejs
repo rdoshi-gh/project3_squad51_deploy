@@ -1,13 +1,14 @@
 <%- include('partials/head', { title: 'Portal', script: null }) %>
-<body class="center-page">
-    <main class="entry-card panel">
+<body class="center-page portal-page">
+    <main class="entry-card portal-card">
+        <p class="portal-eyebrow"><span aria-hidden="true">✿</span> Portal Hub</p>
         <h1>Popping POS (Team 51)</h1>
-        <p>Choose an interface view</p>
-        <nav class="stack portal-actions" aria-label="Interface views">
-            <a href="/manager/login" class="button primary">Manager Dashboard</a>
-            <a href="/cashier/login" class="button primary">Cashier Screen</a>
-            <a href="/kiosk" class="button primary">Customer Kiosk</a>
-            <a href="/kitchen" class="button primary">Kitchen Display</a>
+        <p class="portal-subtitle">Choose an interface view</p>
+        <nav class="portal-actions" aria-label="Interface views">
+            <a href="/manager/login" class="portal-button">Manager Dashboard</a>
+            <a href="/cashier/login" class="portal-button">Cashier Screen</a>
+            <a href="/kiosk" class="portal-button">Customer Kiosk</a>
+            <a href="/kitchen" class="portal-button">Kitchen Display</a>
         </nav>
     </main>
 </body>
