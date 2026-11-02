@@ -40,7 +40,7 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         };
     }
     app.get('/', (req, res) => res.render('index'));
-    // The customer kiosk is public and intentionally has no links to employee views.
+    // The customer kiosk is public; employee workspaces still require sign-in.
     app.get('/kiosk', (req, res) => res.render('kiosk'));
 
     for (const view of ['manager', 'cashier']) {
