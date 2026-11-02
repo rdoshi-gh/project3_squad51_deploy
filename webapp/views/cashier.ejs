@@ -1,7 +1,7 @@
 <%- include('partials/head', { title: 'Cashier', script: 'cashier' }) %>
 <body data-view="cashier">
     <main class="cashier-shell">
-        <header class="panel cashier-header"><div><h1>CASHIER</h1><p><%= employee.name %> · Popping POS</p></div><div class="toolbar"><a href="/" class="button">Back to Portal</a><button id="profile" data-name="<%= employee.name %>" data-role="<%= employee.role %>" data-employee-id="<%= employee.employeeId %>">User Profile</button><button id="logout">Log Out</button></div></header>
+        <header class="panel cashier-header"><div><h1>CASHIER</h1><p><%= employee.name %> · Popping POS</p></div><div class="toolbar"><a href="/" class="portal-back">Back to Portal</a><button id="profile" data-name="<%= employee.name %>" data-role="<%= employee.role %>" data-employee-id="<%= employee.employeeId %>">User Profile</button><button id="logout">Log Out</button></div></header>
         <div id="cashier-message" class="error" role="alert"></div>
         <div class="cashier-columns">
             <section class="panel menu-panel" aria-labelledby="menu-title">

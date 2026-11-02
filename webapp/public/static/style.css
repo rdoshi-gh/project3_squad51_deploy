@@ -223,4 +223,8 @@ legend { font-weight: 600; padding: 0 8px; }
 .portal-button { display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; min-height: 96px; padding: 16px; border-radius: 6px; background: var(--p-green); color: white; font-size: 18px; font-weight: 700; text-align: center; text-decoration: none; }
 .portal-button:hover { background: #2a563c; }
 .portal-button small { color: var(--p-light-green); font-size: 14px; font-weight: 400; }
+/* "Back to Portal" link shown on other views; same green as the Portal Hub buttons. */
+.portal-back { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 18px; border: 2px solid #356b4b; border-radius: 6px; background: white; color: #356b4b; font: inherit; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.portal-back:hover { background: #356b4b; color: white; }
+.entry-card > .portal-back { margin-bottom: 20px; }
 @media (max-width: 520px) { .portal-actions { grid-template-columns: 1fr; } .portal-button { min-height: 64px; } }
