@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kitchen Login | Popping POS</title>
+    <link rel="stylesheet" href="/static/kitchen.css">
+    <script defer src="/static/kitchen-login.js"></script>
+</head>
+<body class="kitchen-login-body">
+    <main class="kitchen-login-card">
+        <a class="back-link" href="/">← Back to portal</a>
+        <h1>Kitchen Display</h1>
+        <p>Select your employee profile to open the kitchen queue.</p>
+        <form id="kitchen-login-form">
+            <label for="kitchen-employee">Employee</label>
+            <select id="kitchen-employee" name="employeeId" required>
+                <option value="">Loading employees…</option>
+            </select>
+            <button class="mark-ready" type="submit">Open Kitchen Display</button>
+        </form>
+        <p class="status-line" id="login-message" role="status" aria-live="polite"></p>
+    </main>
+</body>
+</html>

@@ -1,0 +1,280 @@
+
+:root {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #171717;
+    background: #999999;
+    color-scheme: light;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+}
+
+button, select {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+    border-radius: 40px;
+    padding: 14px 24px;
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible {
+    outline: 3px solid #333;
+    outline-offset: 3px;
+}
+
+button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.back-link {
+    color: #242424;
+    text-decoration: underline;
+}
+
+/* Kitchen login */
+
+.kitchen-login-body {
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.kitchen-login-card {
+    background: #f1f2f4;
+    border-radius: 36px;
+    padding: 55px 60px;
+    width: 100%;
+    max-width: 780px;
+}
+
+.kitchen-login-card h1 {
+    font-size: 42px;
+    margin: 30px 0;
+}
+
+.kitchen-login-card p {
+    font-size: 22px;
+}
+
+.kitchen-login-card form {
+    display: grid;
+    gap: 18px;
+    margin-top: 35px;
+}
+
+.kitchen-login-card label {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.kitchen-login-card select {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #bbb;
+    border-radius: 12px;
+    background: white;
+}
+
+/* Kitchen main page */
+
+.kitchen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 28px 40px;
+    background: #f1f2f4;
+    border-bottom: 1px solid #d0d0d0;
+}
+
+.kitchen-header h1 {
+    font-size: 36px;
+    margin: 15px 0;
+}
+
+.kitchen-header p {
+    color: #555;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.outline-button {
+    background: #d6d6d6;
+    color: #111;
+    border: none;
+}
+
+.outline-button:hover {
+    background: #bcbcbc;
+}
+
+main {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 30px 36px;
+}
+
+.status-line {
+    min-height: 24px;
+    color: #333;
+}
+
+.status-line.error {
+    color: #b3261e;
+    font-weight: bold;
+}
+
+/* Order columns */
+
+.kitchen-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.kitchen-column {
+    padding: 24px;
+    background: #e3e3e3;
+    border-radius: 24px;
+    min-width: 0;
+}
+
+.kitchen-column h2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    font-size: 24px;
+    margin: 0 0 20px;
+}
+
+.kitchen-column h2 span {
+    border-radius: 40px;
+    padding: 5px 14px;
+    background: #c6c6c6;
+}
+
+/* Individual order cards */
+
+.order-list {
+    display: grid;
+    gap: 16px;
+}
+
+.order-card {
+    padding: 24px;
+    background: #f9f9f9;
+    border-radius: 18px;
+    border: 1px solid #d2d2d2;
+}
+
+.order-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.order-heading h3 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.order-time {
+    color: #666;
+}
+
+.order-items {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 0;
+}
+
+.order-items li {
+    padding: 5px 0;
+    overflow-wrap: anywhere;
+}
+
+.order-items li span {
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+.order-items li.topping {
+    color: #555;
+    padding-left: 20px;
+}
+
+/* Action buttons */
+
+.mark-ready {
+    width: 100%;
+    background: #080808;
+    color: white;
+    border: none;
+    font-weight: bold;
+}
+
+.mark-ready:hover:not(:disabled) {
+    background: #333;
+}
+
+.ready-label {
+    display: inline-block;
+    padding: 10px 16px;
+    background: #d5d5d5;
+    color: #111;
+    border-radius: 30px;
+    font-weight: bold;
+}
+
+.empty {
+    padding: 22px;
+    text-align: center;
+    color: #555;
+    background: #f9f9f9;
+    border-radius: 14px;
+    margin: 0;
+}
+
+@media (max-width: 780px) {
+    .kitchen-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 24px;
+    }
+
+    .kitchen-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .kitchen-login-card {
+        padding: 32px 24px;
+    }
+
+    .kitchen-login-card h1 {
+        font-size: 32px;
+    }
+
+    main {
+        padding: 20px;
+    }
+}

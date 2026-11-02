@@ -47,21 +47,26 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     // The customer kiosk is public and intentionally has no links to employee views.
     app.get('/kiosk', (req, res) => res.render('kiosk'));
 
-    for (const view of ['manager', 'cashier']) {
-        app.get(`/${view}/login`, (req, res) => res.render('login', { view }));
+    for (const view of ['manager', 'cashier', 'kitchen']) {
+        app.get(`/${view}/login`, (req, res) =>
+            res.render(view === 'kitchen' ? 'kitchen-login' : 'login', { view })
+        );
+
         app.get(`/${view}`, (req, res) => {
-            if (!req.session || req.session.view !== view) return res.redirect(`/${view}/login`);
+            if (!req.session || req.session.view !== view)
+                return res.redirect(`/${view}/login`);
+
             res.render(view, { employee: req.session });
         });
     }
     app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'Popping POS' }));
     app.get('/api/login-employees', route(async (req, res) => {
-        if (!['cashier', 'manager'].includes(req.query.view)) throw new InputError('Choose a valid employee view.');
+        if (!['cashier', 'manager', 'kitchen'].includes(req.query.view)) throw new InputError('Choose a valid employee view.');
         res.json(await db.query(`SELECT employee_id, name, role FROM employees ${req.query.view === 'manager' ? "WHERE LOWER(role) = 'manager'" : ''} ORDER BY name, employee_id`));
     }));
     app.post('/api/session', route(async (req, res) => {
         const view = req.body.view;
-        if (!['cashier', 'manager'].includes(view)) throw new InputError('Choose a valid employee view.');
+        if (!['cashier', 'manager', 'kitchen'].includes(view)) throw new InputError('Choose a valid employee view.');
         const [employee] = await db.query('SELECT employee_id, name, role FROM employees WHERE employee_id = $1', [id(req.body.employeeId)]);
         if (!employee || (view === 'manager' && employee.role.toLowerCase() !== 'manager')) throw new InputError('Select an employee with the required role.', 403);
         session.signIn(res, employee, view);

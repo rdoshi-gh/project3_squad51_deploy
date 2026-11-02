@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kitchen Display | Popping POS</title>
+    <link rel="stylesheet" href="/static/kitchen.css">
+    <script defer src="/static/kitchen.js"></script>
+</head>
+<body>
+    <header class="kitchen-header">
+        <div>
+            <a class="back-link" href="/">← Portal</a>
+            <h1>Kitchen Display</h1>
+            <p>Orders appear automatically when placed at the cashier or kiosk.</p>
+        </div>
+        <div class="header-actions">
+            <span>Employee: <strong><%= employee.name %></strong></span>
+            <button id="refresh-button" type="button" class="outline-button">Refresh</button>
+            <button id="logout-button" type="button" class="outline-button">Log out</button>
+        </div>
+    </header>
+    <main>
+        <p id="kitchen-message" class="status-line" role="status" aria-live="polite">Loading orders…</p>
+        <div class="kitchen-columns">
+            <section class="kitchen-column" aria-labelledby="progress-title">
+                <h2 id="progress-title">In Progress <span id="in-progress-count">0</span></h2>
+                <div id="in-progress-orders" class="order-list"></div>
+            </section>
+            <section class="kitchen-column" aria-labelledby="ready-title">
+                <h2 id="ready-title">Ready <span id="ready-count">0</span></h2>
+                <div id="ready-orders" class="order-list"></div>
+            </section>
+        </div>
+    </main>
+</body>
+</html>
