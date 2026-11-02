@@ -220,6 +220,7 @@ legend { font-weight: 600; padding: 0 8px; }
 .portal-card h1 { margin: 8px 0 6px; font-size: 32px; }
 .portal-subtitle { color: var(--p-muted); }
 .portal-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-.portal-button { display: flex; align-items: center; justify-content: center; min-height: 96px; padding: 16px; border-radius: 6px; background: var(--p-green); color: white; font-size: 18px; font-weight: 700; text-align: center; text-decoration: none; }
+.portal-button { display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center; min-height: 96px; padding: 16px; border-radius: 6px; background: var(--p-green); color: white; font-size: 18px; font-weight: 700; text-align: center; text-decoration: none; }
 .portal-button:hover { background: #2a563c; }
+.portal-button small { color: var(--p-light-green); font-size: 14px; font-weight: 400; }
 @media (max-width: 520px) { .portal-actions { grid-template-columns: 1fr; } .portal-button { min-height: 64px; } }
