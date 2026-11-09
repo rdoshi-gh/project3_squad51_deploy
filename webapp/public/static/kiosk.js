@@ -5,6 +5,12 @@
     const search = document.getElementById('kiosk-search');
     const dialog = document.getElementById('kiosk-dialog');
     const dialogBody = document.getElementById('kiosk-dialog-body');
+    const welcome = document.getElementById('kiosk-welcome-screen');
+    const orderScreen = document.getElementById('kiosk-order-screen');
+    const cartBar = document.getElementById('kiosk-cart-bar');
+    const nameInput = document.getElementById('kiosk-customer-name');
+    const nameError = document.getElementById('kiosk-name-error');
+
     const money = value => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Number(value) || 0);
     const make = (tag, attrs = {}, ...children) => {
         const node = document.createElement(tag);
@@ -142,24 +148,25 @@
         } catch (err) { error.textContent = err.message; }
         finally { busy = false; drawCartSummary(); }
     }
+    document.getElementById('kiosk-name-form').addEventListener('submit', event => {
+        event.preventDefault(); nameError.textContent = '';
+        const value = nameInput.value.trim();
+        if (!value || value.length > 40) { nameError.textContent = 'Please enter a name (up to 40 characters).'; nameInput.focus(); return; }
+        customerName = value; document.getElementById('kiosk-name-greeting').textContent = customerName;
+        welcome.hidden = true; orderScreen.hidden = false; cartBar.hidden = false; drawCartSummary();
+        document.getElementById('kiosk-menu').scrollIntoView({ behavior: 'smooth' });
+    });
     document.getElementById('kiosk-review').addEventListener('click', reviewCart);
     search.addEventListener('input', drawMenu);
     dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
     async function loadMenu() {
-        message.textContent = '';
-        grid.replaceChildren(make('p', { class: 'kiosk-empty' }, 'Getting the good stuff ready…'));
+        message.textContent = ''; grid.replaceChildren(make('p', { class: 'kiosk-empty' }, 'Getting the good stuff ready…'));
         try {
-            const response = await fetch('/api/kiosk/menu');
-            const data = await response.json();
+            const response = await fetch('/api/kiosk/menu'); const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'We could not load the menu.');
-            menu = data;
-            drawCategories(); drawMenu(); drawCartSummary();
+            menu = data; drawCategories(); drawMenu(); drawCartSummary();
             if (!drinks().length) grid.replaceChildren(make('p', { class: 'kiosk-empty' }, 'Our menu is taking a little break. Please check back soon.'));
-        } catch (error) {
-            message.textContent = error.message;
-            grid.replaceChildren(button('Try again', loadMenu));
-        }
+        } catch (error) { message.textContent = error.message; grid.replaceChildren(button('Try again', loadMenu)); }
     }
-    drawCartSummary();
-    loadMenu();
+    drawCartSummary(); loadMenu();
 })();
