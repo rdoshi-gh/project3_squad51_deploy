@@ -37,6 +37,10 @@ async function getReport(db, type, start, end) {
             rows: rows.map(row => type === 'top' ? [row.name, row.category, Number(row.quantity)]
                 : [row.name, row.category, Number(row.quantity), money(row.price), money(row.estimated_sales)]),
             metrics: [metric('Menu items sold', rows.length), metric('Total units', quantity), ...(type === 'sales' ? [metric('Estimated sales', money(sales))] : [])],
+            chart: { title: type === 'top' ? 'Units sold by menu item' : 'Estimated sales by menu item (current prices)',
+                unit: type === 'top' ? 'units' : 'USD',
+                points: [...rows].sort((a, b) => Number(type === 'top' ? b.quantity : b.estimated_sales) - Number(type === 'top' ? a.quantity : a.estimated_sales))
+                    .map(row => ({ label: row.name, value: Number(type === 'top' ? row.quantity : row.estimated_sales) })) },
             note: type === 'sales' ? 'Sales estimates use current menu prices; the Project 2 schema does not store historical unit prices.' : `${start} through ${end}`,
             empty: 'No items were sold in this period.' };
     }
