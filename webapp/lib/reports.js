@@ -53,7 +53,14 @@ async function getReport(db, type, start, end) {
                 type === 'restock' ? Number(row.amount_needed) : Number(row.quantity) <= Number(row.reorder_level) ? 'Low' : 'OK']),
             metrics: [metric(type === 'restock' ? 'Items needing restock' : 'Inventory items', rows.length),
                 ...(type === 'inventory' ? [metric('At or below reorder level', rows.filter(row => Number(row.quantity) <= Number(row.reorder_level)).length)] : [])],
-            note: 'Current inventory snapshot; date range does not apply.',
+            groups: [...new Set(rows.map(row => row.unit))].map(unit => ({
+                title: type === 'restock' ? `Restock shortfall (${unit})` : `Stock and reorder levels (${unit})`, unit,
+                series: type === 'restock' ? [{ key: 'value', label: 'Amount needed' }]
+                    : [{ key: 'value', label: 'Current stock' }, { key: 'reorder', label: 'Reorder level' }],
+                points: rows.filter(row => row.unit === unit).map(row => ({ label: row.name,
+                    value: Number(type === 'restock' ? row.amount_needed : row.quantity), reorder: Number(row.reorder_level) }))
+            })),
+            note: 'Current inventory snapshot; date range does not apply. Charts group items by measurement unit.',
             empty: type === 'restock' ? 'All inventory items meet or exceed their reorder levels.' : 'No inventory items found.' };
     }
     if (type === 'hourly') {

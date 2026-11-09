@@ -228,3 +228,12 @@ legend { font-weight: 600; padding: 0 8px; }
 .portal-back:hover { background: #356b4b; color: white; }
 .entry-card > .portal-back { margin-bottom: 20px; }
 @media (max-width: 520px) { .portal-actions { grid-template-columns: 1fr; } .portal-button { min-height: 64px; } }
+
+/* Report comparisons retain labels and exact values without relying on color. */
+.chart-item { display: flex; flex-direction: column; gap: 6px; }
+.chart-label { overflow-wrap: anywhere; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 16px; font-weight: 600; }
+.chart-series-1 progress::-webkit-progress-value { background: #8b4513; }
+.chart-series-1 progress::-moz-progress-bar { background: #8b4513; }
+.chart-legend .chart-series-1 { color: #8b4513; }
+.chart-value { overflow-wrap: anywhere; }

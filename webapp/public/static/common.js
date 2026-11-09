@@ -84,11 +84,21 @@ window.POS = (() => {
         return h('div', { class: 'table-wrap' }, h('table', {}, h('thead', {}, h('tr', {}, heads)), body));
     }
     const metrics = values => h('div', { class: 'metrics' }, values.map(({ label, value }) => h('div', { class: 'metric' }, h('span', {}, label), h('strong', {}, value))));
-    function chart({ title, unit, points }) {
-        const max = Math.max(...points.map(point => point.value), 1);
-        return h('section', { 'aria-label': title }, h('h3', {}, title), h('div', { class: 'chart' }, points.map(point =>
-            h('div', { class: 'chart-row' }, h('span', {}, point.label), h('div', { class: 'chart-track' }, h('progress', { max, value: point.value, 'aria-label': `${point.label}: ${numeric(point.value)} ${unit}` })),
-                h('span', { class: 'chart-value' }, unit === 'USD' ? money(point.value) : numeric(point.value))))));
+    function chart({ title, unit, points, series = [{ key: 'value', label: 'Amount' }] }) {
+        const valueOf = (point, key) => Math.max(0, Number(point[key]) || 0);
+        const max = points.reduce((largest, point) => Math.max(largest, ...series.map(item => valueOf(point, item.key))), 1);
+        const format = value => unit === 'USD' ? money(value) : `${numeric(value)} ${unit || ''}`.trim();
+        return h('section', { 'aria-label': title }, h('h3', {}, title),
+            ...(series.length > 1 ? [h('div', { class: 'chart-legend' }, series.map((item, index) =>
+                h('span', { class: `chart-series-${index}` }, item.label)))] : []),
+            points.length ? h('div', { class: 'chart' }, points.map(point =>
+                h('div', { class: 'chart-item' }, h('strong', { class: 'chart-label' }, point.label),
+                    series.map((item, index) => h('div', { class: `chart-row chart-series-${index}` },
+                        h('span', {}, item.label),
+                        h('div', { class: 'chart-track' }, h('progress', { max, value: valueOf(point, item.key),
+                            'aria-label': `${point.label}, ${item.label}: ${format(valueOf(point, item.key))}` })),
+                        h('span', { class: 'chart-value' }, format(valueOf(point, item.key))))))))
+                : h('p', { class: 'empty' }, 'No data available for this chart.'));
     }
     function modal(title, content, footer = [], { showClose = true } = {}) {
         const dialog = document.getElementById('modal');
