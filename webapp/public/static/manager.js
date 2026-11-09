@@ -193,6 +193,9 @@
         const range = await get('range');
         const options = [{ value: 'daily', label: 'Daily Sales Summary' }, { value: 'top', label: 'Top Selling Items' }, { value: 'inventory', label: 'Inventory Status' }, { value: 'hourly', label: 'X Report (Hourly Sales)' }, { value: 'sales', label: 'Sales Report' }, { value: 'restock', label: 'Restock Report' }];
         const type = select(options, 'daily'), start = input(range.start, 'date'), end = input(range.last, 'date');
+        const reportViews = new Map();
+        const startField = field('Start Date', start), endField = field('End Date', end);
+        const hourlyScope = h('p', { class: 'note', hidden: true }, 'Today only, from midnight through now (database time).');
         const result = h('div', { class: 'stack' }), error = status();
         let pending, request, sequence = 0;
         const pageSignal = controller.signal;
@@ -203,6 +206,8 @@
             const reportType = usageOnly ? 'usage' : type.value;
             const historical = ['daily', 'top', 'sales', 'usage'].includes(reportType);
             start.disabled = end.disabled = !historical;
+            startField.hidden = endField.hidden = reportType === 'hourly';
+            hourlyScope.hidden = reportType !== 'hourly';
             request?.abort(); const seq = ++sequence; request = new AbortController();
             error.textContent = '';
             if (historical && (!start.value || !end.value || start.value > end.value)) { error.textContent = 'Choose a valid start date on or before the end date.'; return; }
@@ -210,10 +215,22 @@
             try {
                 const data = await api(`/api/manager/reports?${new URLSearchParams({ type: reportType, start: start.value, end: end.value })}`, { signal: request.signal });
                 if (seq !== sequence || pageSignal.aborted) return;
-                result.replaceChildren(panel(data.title, table(data.columns, data.rows, data.empty, { sortable: true })),
-                    ...(data.chart ? [panel(null, chart(data.chart))] : []),
-                    ...(data.groups || []).map(group => panel(null, chart(group))),
-                    panel(null, metrics(data.metrics), h('p', { class: 'note' }, data.note)));
+                function renderReport() {
+                    const graph = reportViews.get(reportType) === 'graph';
+                    const tableButton = button('Table View', () => { reportViews.set(reportType, 'table'); renderReport(); result.querySelector('[aria-pressed="true"]').focus(); });
+                    const graphButton = button('Graph View', () => { reportViews.set(reportType, 'graph'); renderReport(); result.querySelector('[aria-pressed="true"]').focus(); });
+                    tableButton.setAttribute('aria-pressed', String(!graph));
+                    graphButton.setAttribute('aria-pressed', String(graph));
+                    tableButton.classList.toggle('primary', !graph);
+                    graphButton.classList.toggle('primary', graph);
+                    const switcher = h('div', { class: 'toolbar report-view-switch', role: 'group', 'aria-label': 'Report view' }, tableButton, graphButton);
+                    const graphs = [data.chart, ...(data.groups || [])].filter(Boolean);
+                    result.replaceChildren(panel(data.title, switcher,
+                        graph ? h('div', { class: 'stack' }, graphs.length ? graphs.map(chart) : h('p', { class: 'empty' }, data.empty || 'No data available for this chart.'))
+                            : table(data.columns, data.rows, data.empty, { sortable: true })),
+                        panel(null, metrics(data.metrics), h('p', { class: 'note' }, data.note)));
+                }
+                renderReport();
                 announce(`${data.title} loaded.`);
             } catch (err) { if (err.name !== 'AbortError') error.textContent = err.message; }
             finally { if (seq === sequence) result.removeAttribute('aria-busy'); }
@@ -223,7 +240,7 @@
             const dates = POS.presetDates(range, days); start.value = dates.start; end.value = dates.end; load();
         }))) : null;
         load();
-        return [header(usageOnly ? 'Product Usage' : 'Reports', toolbar(...(!usageOnly ? [field('Report Type', type)] : []), field('Start Date', start), field('End Date', end), button('Refresh Report', load)), ...(shortcuts ? [h('div', { class: 'note' }, shortcuts)] : []), error), result];
+        return [header(usageOnly ? 'Product Usage' : 'Reports', toolbar(...(!usageOnly ? [field('Report Type', type)] : []), startField, endField, hourlyScope, button('Refresh Report', load)), ...(shortcuts ? [h('div', { class: 'note' }, shortcuts)] : []), error), result];
     }
 
     const builders = { dashboard, orders, inventory: () => records('inventory'), 'inventory-review': inventoryReview, usage: () => reporting(true), restocking, employees: () => records('employees'), menu: () => records('menu'), reports: () => reporting() };

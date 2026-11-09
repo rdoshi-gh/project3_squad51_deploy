@@ -237,3 +237,5 @@ legend { font-weight: 600; padding: 0 8px; }
 .chart-series-1 progress::-moz-progress-bar { background: #8b4513; }
 .chart-legend .chart-series-1 { color: #8b4513; }
 .chart-value { overflow-wrap: anywhere; }
+
+.report-view-switch { margin-top: 20px; margin-bottom: 24px; }

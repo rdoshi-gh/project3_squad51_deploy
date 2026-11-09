@@ -56,7 +56,7 @@ test('usage compares historical consumption with explicitly identified current s
 });
 
 for (const type of ['daily', 'top', 'sales', 'inventory', 'restock', 'hourly', 'usage']) {
-    test(`${type} report renders its visualization alongside the table`, async t => {
+    test(`${type} report switches between table and graph without another request`, async t => {
         const db = { query: async sql => sql.includes('COUNT(*) AS orders FROM') ? [{ orders: '1' }] : [
             { name: 'Tea', category: 'Drinks', quantity: '2', price: '3', estimated_sales: '6',
                 day: start, hour: 9, orders: '1', revenue: '6', unit: 'each', reorder_level: '4', amount_needed: '2', used: '1', stock: '2' }
@@ -75,7 +75,19 @@ for (const type of ['daily', 'top', 'sales', 'inventory', 'restock', 'hourly', '
         }
         const main = ui.document.getElementById('manager-main');
         assert.ok(main.querySelector('table'));
+        assert.equal(main.querySelector('progress'), null);
+        const count = ui.requests.length;
+        ui.findButton('Graph View', main).click();
+        assert.equal(main.querySelector('table'), null);
         assert.ok(main.querySelector('progress'));
+        assert.equal(ui.findButton('Graph View', main).getAttribute('aria-pressed'), 'true');
+        ui.findButton('Refresh Report', ui.document).click();
+        await flush();
+        assert.equal(main.querySelector('table'), null, 'refresh preserves graph selection');
+        ui.findButton('Table View', main).click();
+        assert.ok(main.querySelector('table'));
+        assert.equal(main.querySelector('progress'), null);
+        assert.equal(ui.requests.length, count + 1, 'only refresh fetches data');
         assert.match(main.textContent, new RegExp(report.title.replace(/[()]/g, '\\$&')));
     });
 }
@@ -88,4 +100,25 @@ test('empty and zero charts provide readable feedback without invalid scales', a
     assert.equal(chart.querySelector('progress').max, 1);
     assert.equal(chart.querySelector('progress').value, 0);
     assert.match(chart.textContent, /\$0.00/);
+});
+
+test('X Report hides historical dates and restores them for other reports', async t => {
+    const report = { title: 'Report', columns: ['Value'], rows: [], metrics: [], note: '', groups: [] };
+    const ui = await createUi({ view: 'manager', page: 'reports', fetch: async url => response(
+        url.endsWith('/range') ? { first: start, start, last: end } : report) });
+    t.after(() => ui.dom.window.close());
+    ui.run('manager'); await flush();
+    const dates = [...ui.document.querySelectorAll('input[type="date"]')];
+    const originalDates = dates.map(input => input.value);
+    const type = ui.document.querySelector('select');
+    type.value = 'hourly';
+    ui.findButton('Refresh Report', ui.document).click(); await flush();
+    assert.ok(dates.every(input => input.disabled && input.parentElement.hidden));
+    const scope = [...ui.document.querySelectorAll('p')].find(p => p.textContent.includes('Today only'));
+    assert.equal(scope.hidden, false);
+    type.value = 'daily';
+    ui.findButton('Refresh Report', ui.document).click(); await flush();
+    assert.ok(dates.every(input => !input.disabled && !input.parentElement.hidden));
+    assert.deepEqual(dates.map(input => input.value), originalDates);
+    assert.equal(scope.hidden, true);
 });
