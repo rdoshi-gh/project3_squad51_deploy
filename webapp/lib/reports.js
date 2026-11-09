@@ -91,9 +91,10 @@ async function getReport(db, type, start, end) {
         return { title: 'Product Usage', columns: ['Inventory Item', 'Unit', 'Amount Used', 'Current Stock'],
             rows: rows.map(row => [row.name, row.unit, Number(row.used), Number(row.stock)]),
             metrics: [metric('Orders in period', Number(totals.orders)), metric('Inventory items used', rows.filter(row => Number(row.used) > 0).length)],
-            groups: [...new Set(rows.map(row => row.unit))].map(unit => ({ title: `Inventory used (${unit})`, unit,
+            groups: [...new Set(rows.map(row => row.unit))].map(unit => ({ title: `Usage and current stock (${unit})`, unit,
+                series: [{ key: 'value', label: 'Used in period' }, { key: 'stock', label: 'Current stock' }],
                 points: rows.filter(row => row.unit === unit).map(row => ({ label: row.name, value: Number(row.used), stock: Number(row.stock) })) })),
-            note: 'Usage is calculated from order quantities and current recipes. Bars compare items measured in the same unit.',
+            note: 'Usage is calculated from order quantities and current recipes. Current stock is a present-day snapshot, not stock at the end of the selected period. Bars compare items measured in the same unit.',
             empty: 'No inventory items found.' };
     }
     throw new InputError('Choose a supported report.');

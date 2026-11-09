@@ -59,6 +59,10 @@ Other navigation stays within the selected employee workspace.
 - Reports: Daily Sales Summary, Top Selling Items, Inventory Status, X Report
   (hourly sales), Sales Report, Restock Report, and Product Usage charts.
   Product Usage includes Last 7 Days, Last 30 Days, and All Time shortcuts.
+  Every report includes a labeled bar visualization alongside its sortable table.
+  Item sales charts rank units or estimated revenue; inventory and restock charts
+  group quantities by unit. Product Usage compares period consumption with current
+  stock, which is a present-day snapshot rather than historical ending inventory.
   Reports reload when settings change; Refresh Report reloads the same settings.
 
 The original `/user` teammates example remains available for deployment parity;
