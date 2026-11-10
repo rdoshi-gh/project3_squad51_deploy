@@ -1,0 +1,30 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: popping-pos-squad51
+    runtime: node
+    plan: free
+    region: ohio
+    branch: main
+    rootDir: webapp
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PSQL_HOST
+        sync: false
+      - key: PSQL_PORT
+        value: "5432"
+      - key: PSQL_USER
+        sync: false
+      - key: PSQL_DATABASE
+        sync: false
+      - key: PSQL_PASSWORD
+        sync: false

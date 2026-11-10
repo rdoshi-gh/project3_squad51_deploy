@@ -45,7 +45,7 @@ const pool = new Pool({
     database: process.env.PSQL_DATABASE,
     password: process.env.PSQL_PASSWORD,
     port: Number(process.env.PSQL_PORT || 5432),
-    // Preserve the repository's TAMU/Vercel TLS configuration; local PostgreSQL can opt out.
+    // Preserve the existing TAMU database TLS configuration; local PostgreSQL can opt out.
     ssl: process.env.PSQL_SSL === 'false' ? false : { rejectUnauthorized: false },
     max: 3,
     connectionTimeoutMillis: 10000,

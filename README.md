@@ -5,7 +5,7 @@ using the existing PostgreSQL database. No schema migration or reseeding is requ
 
 ## Team development map
 
-- `webapp/index.js`: local server and Vercel entry point.
+- `webapp/index.js`: Render/local HTTP server and test entry point.
 - `webapp/application.js`: Express page routes, APIs, and role checks.
 - `webapp/lib/`: database connection, sessions, validation, checkout, and reports.
 - `webapp/views/`: EJS page structure and shared head.
@@ -131,28 +131,37 @@ when the process stops. Restart it to reset sample data. This preview requires
 a PostgreSQL connection with temporary-table permissions and is never the
 production server. `PREVIEW_PORT` can override 3001.
 
-## Vercel deployment
+## Render deployment
 
-Keep **Root Directory** set to `webapp`, as in the original repository. The
-entry point is `index.js`, exporting Express; no build command or output-directory
-override is needed. `vercel.json` includes the EJS templates in the function.
-Static assets live in `public/static/` and use `/static/...` URLs both locally
-and on Vercel. This follows Vercel's [Express deployment guidance](https://vercel.com/docs/frameworks/backend/express).
+[Deploy this repository on Render](https://dashboard.render.com/select-repo?type=blueprint&repo=https%3A%2F%2Fgithub.com%2Frdoshi-gh%2Fproject3_squad51_deploy)
+using the root `render.yaml` Blueprint. It creates the `popping-pos-squad51`
+Node web service from `main`, with `webapp` as the root directory,
+`npm ci` as the build command, and `npm start` as the start command.
+The service listens on `0.0.0.0` using Render's `PORT` and checks `/api/health`.
+Pushes to `main` automatically deploy.
 
-Set these environment variables in the Vercel project for Production and Preview:
+The Blueprint generates a stable `SESSION_SECRET` and sets `NODE_ENV=production`.
+Supply the existing database credentials privately when Render prompts for:
 
 - `PSQL_HOST`
 - `PSQL_USER`
 - `PSQL_DATABASE`
 - `PSQL_PASSWORD`
-- `PSQL_PORT`
-- `SESSION_SECRET` (a long, random value; keep it stable across instances)
 
-The database must accept connections from the deployment. The repository's
-existing PostgreSQL TLS configuration is preserved. `.env` and `.vercel/` stay
-out of Git. Review the authentication scope above before publishing. Import
-through Vercel's Git integration, or run `vercel --prod` from `webapp/` only
-when the team is ready to publish.
+`PSQL_PORT` defaults to `5432`; change it if your database uses another port.
+The existing PostgreSQL database and its data are reused. No seed, schema,
+or database reset command runs during build or startup. The database must allow
+connections from the Render service. Keep `.env` and all secret values out of Git.
+
+The Blueprint selects Render's free plan. Free services sleep when idle, so the
+first request after inactivity can take longer. See [Render's free service
+limits](https://render.com/docs/free). Review the authentication scope above.
+
+After deployment, verify `/`, `/api/health`, `/static/style.css`, both employee
+login pages, and a successful employee session. Verify HTTPS from school Wi-Fi
+as well; that network check must be performed on the school's connection.
+Once Render is verified, disable Vercel automatic deploys and pause the old
+Vercel project to complete the hosting cutover.
 
 ## Customer Kiosk
 
