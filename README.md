@@ -133,6 +133,13 @@ production server. `PREVIEW_PORT` can override 3001.
 
 ## Render deployment
 
+Live site: https://popping-pos-squad51-z8cf.onrender.com
+
+The production service is managed by the **Popping POS Team 51** Blueprint in
+Render's **My Workspace**. Service dashboard:
+https://dashboard.render.com/web/srv-dbpo1lec6qcc73e3g2hg
+The service name has a Render-generated suffix; the Blueprint tracks its identity.
+
 [Deploy this repository on Render](https://dashboard.render.com/select-repo?type=blueprint&repo=https%3A%2F%2Fgithub.com%2Frdoshi-gh%2Fproject3_squad51_deploy)
 using the root `render.yaml` Blueprint. It creates the `popping-pos-squad51`
 Node web service from `main`, with `webapp` as the root directory,
@@ -160,8 +167,13 @@ limits](https://render.com/docs/free). Review the authentication scope above.
 After deployment, verify `/`, `/api/health`, `/static/style.css`, both employee
 login pages, and a successful employee session. Verify HTTPS from school Wi-Fi
 as well; that network check must be performed on the school's connection.
-Once Render is verified, disable Vercel automatic deploys and pause the old
-Vercel project to complete the hosting cutover.
+Vercel automatic deploys are disconnected. Use the Render URL for the application.
+To stop traffic to the old Vercel deployment, run the following interactively
+and type the project name when Vercel asks (the CLI requires human confirmation):
+
+```sh
+vercel project pause project3-squad51-deploy --scope rdoshi-ghs-projects
+```
 
 ## Customer Kiosk
 
