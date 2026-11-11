@@ -30,7 +30,10 @@ function buildOrder(raw, menu) {
     return { lines, sold, totalCents };
 }
 
-async function saveOrder(db, employeeId, raw) {
+// Loyalty: customers earn 1 point per whole dollar spent.
+const pointsFor = total => Math.floor(total);
+
+async function saveOrder(db, employeeId, raw, { customerId } = {}) {
     return db.transaction(async client => {
         // Obtain the ID-allocation lock before stock locks so simultaneous orders use one lock order.
         const orderId = await db.nextId(client, 'customer_orders', 'order_id');
@@ -59,8 +62,14 @@ async function saveOrder(db, employeeId, raw) {
         for (const need of needs) {
             await client.query('UPDATE inventory_items SET quantity = quantity - $1::numeric WHERE inventory_item_id = $2', [need.needed, need.inventory_item_id]);
         }
-        return { ...result.rows[0], total: order.totalCents / 100 };
+        const total = order.totalCents / 100;
+        if (customerId) {
+            const earned = pointsFor(total);
+            const updated = await client.query('UPDATE customers SET points = points + $1 WHERE customer_id = $2 RETURNING points', [earned, customerId]);
+            if (updated.rows.length) return { ...result.rows[0], total, pointsEarned: earned, points: updated.rows[0].points };
+        }
+        return { ...result.rows[0], total };
     });
 }
 
-module.exports = { buildOrder, saveOrder };
+module.exports = { buildOrder, saveOrder, pointsFor };

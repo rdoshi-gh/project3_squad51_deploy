@@ -99,15 +99,33 @@ Its totals cover the entire selected period. Reorder history shows the latest
 100 requests. A failed network response during checkout can be ambiguous: check
 order history before retrying, since the existing schema has no retry token.
 
-## Authentication scope
+## Authentication
 
-This pass preserves Project 2's employee-selection sign-in. It issues a signed,
-HTTP-only, one-hour cookie, enforces cashier/manager routes, and rejects
-cross-origin browser writes. **Selecting an employee does not verify identity.**
-This is a prototype sign-in flow, not the external authentication required for
-Project 3. Integrate the team's chosen identity provider and employee mapping
-before exposing employee operations to untrusted users. A production deployment
-requires `SESSION_SECRET`; without it, employee sign-in is unavailable.
+**Employees** (manager, cashier, kitchen) keep Project 2's employee-selection
+sign-in. It issues a signed, HTTP-only, one-hour cookie, enforces
+cashier/manager routes, and rejects cross-origin browser writes. Selecting an
+employee does not verify identity. A production deployment requires
+`SESSION_SECRET`; without it, employee sign-in is unavailable.
+
+**Customers** can optionally sign in on the kiosk with Google (OAuth 2.0
+authorization code flow, `webapp/lib/google-auth.js`) to earn loyalty points;
+guests can still order. The callback verifies the signed `state` cookie and the
+ID token's issuer, audience, nonce, expiry, and `email_verified`. First sign-in
+creates a `customers` row. Each kiosk order earns 1 point per whole dollar,
+credited in the same transaction as the order. Customer sessions last 15 minutes
+and end after checkout, since the kiosk is shared.
+
+Setup:
+
+1. Run `database/add_customers.sql` once.
+2. In Google Cloud Console, create an OAuth client ID (Web application) with
+   redirect URIs `http://localhost:3000/auth/google/callback` and
+   `https://<render-host>/auth/google/callback`. While the consent screen is in
+   Testing, add each Google account (including `reveille.bubbletea@gmail.com`)
+   as a test user.
+3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `webapp/.env` and in
+   Render. `APP_BASE_URL` optionally overrides the host used for the redirect URI.
+   The kiosk hides the Google button until both are set.
 
 ## Tests and safe browser preview
 

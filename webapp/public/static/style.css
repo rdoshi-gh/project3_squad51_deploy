@@ -239,3 +239,14 @@ legend { font-weight: 600; padding: 0 8px; }
 .chart-value { overflow-wrap: anywhere; }
 
 .report-view-switch { margin-top: 20px; margin-bottom: 24px; }
+
+/* Kiosk rewards sign-in */
+.kiosk-rewards { display: inline-flex; align-items: center; gap: 10px; margin: 0; }
+.kiosk-rewards-signin { min-height: 44px; padding: 10px 18px; border: 1px solid #747775; border-radius: 22px; background: #fff; color: #1f1f1f; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.kiosk-rewards-signin:hover { background: #f2f2f2; }
+.kiosk-rewards-points { padding: 9px 14px; border-radius: 20px; background: var(--k-light-green); color: var(--k-green); white-space: nowrap; }
+.kiosk-rewards-signout { min-height: 44px; padding: 10px 16px; border-radius: 22px; }
+.kiosk-signin-error { margin: 12px 24px 0; padding: 12px 16px; border-radius: 12px; background: #fde8e8; color: #760909; font-weight: 600; }
+.kiosk-points-earned { font-weight: 700; color: var(--k-green); }
+.kiosk-rewards-signout { white-space: nowrap; }
+@media (max-width: 1100px) { .kiosk-topbar .kiosk-top-note { display: none; } .kiosk-topbar { flex-wrap: wrap; gap: 10px; } }

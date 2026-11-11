@@ -3,6 +3,7 @@ const ejs = require('ejs');
 const path = require('node:path');
 const { db: defaultDb } = require('./lib/db');
 const { sessions } = require('./lib/session');
+const { googleAuth, readCustomer, signOutCustomer } = require('./lib/google-auth');
 const { InputError, id, text, number, dateRange } = require('./lib/validation');
 const { getReport, getRange, LAST_WEEK } = require('./lib/reports');
 const { saveOrder } = require('./lib/orders');
@@ -11,10 +12,12 @@ const {
     markKitchenOrderReady
 } = require('./lib/kitchen');
 
-function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express() } = {}) {
+function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express(), fetchImpl, env } = {}) {
     const session = sessions(secret);
     const route = handler => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
     app.disable('x-powered-by');
+    // Render terminates TLS at its proxy; trust it so req.protocol is https for the OAuth redirect URI.
+    app.set('trust proxy', 1);
     // Import the renderer explicitly so Vercel includes it in the function bundle.
     app.engine('ejs', ejs.renderFile);
     app.set('view engine', 'ejs');
@@ -43,9 +46,20 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
             next();
         };
     }
+    const google = googleAuth({ app, db, session, fetchImpl, env });
     app.get('/', (req, res) => res.render('index'));
     // The customer kiosk is public; employee workspaces still require sign-in.
-    app.get('/kiosk', (req, res) => res.render('kiosk'));
+    app.get('/kiosk', route(async (req, res) => {
+        const signedIn = readCustomer(session, req);
+        let customer = null;
+        if (signedIn) {
+            const [row] = await db.query('SELECT points FROM customers WHERE customer_id = $1', [signedIn.customerId]);
+            if (row) customer = { firstName: signedIn.firstName, points: row.points };
+            else signOutCustomer(res);
+        }
+        res.render('kiosk', { customer, googleEnabled: google.enabled, signinError: google.message(req.query.signin_error) });
+    }));
+    app.post('/kiosk/sign-out', (req, res) => { signOutCustomer(res); res.redirect(303, '/kiosk'); });
 
     for (const view of ['manager', 'cashier', 'kitchen']) {
         app.get(`/${view}/login`, (req, res) =>
@@ -79,7 +93,11 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     app.get('/api/menu', requireSession(), route(async (req, res) => res.json(await db.query('SELECT * FROM menu_items ORDER BY category, name, menu_item_id'))));
     app.get('/api/kiosk/menu', route(async (req, res) => res.json(await db.query('SELECT menu_item_id, name, category, price FROM menu_items ORDER BY category, name, menu_item_id'))));
     app.post('/api/kiosk/orders', route(async (req, res) => {
-        res.status(201).json(await saveOrder(db, 6, req.body.lines));
+        const customer = readCustomer(session, req);
+        const order = await saveOrder(db, 6, req.body.lines, { customerId: customer && customer.customerId });
+        // Sign the customer out after checkout so the next person at the kiosk starts fresh.
+        if (customer) signOutCustomer(res);
+        res.status(201).json(order);
     }));
     app.post('/api/orders', requireSession('cashier'), route(async (req, res) => res.status(201).json(await saveOrder(db, req.session.employeeId, req.body.lines))));
     app.use('/api/kitchen', requireSession('kitchen'));

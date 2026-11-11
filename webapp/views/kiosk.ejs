@@ -8,9 +8,18 @@
         </a>
         <a href="/" class="portal-back">Back to Portal</a>
         <p class="kiosk-top-note">Place Your Order Here!</p>
+        <% if (customer) { %>
+        <form class="kiosk-rewards" method="post" action="/kiosk/sign-out">
+            <span class="kiosk-rewards-points"><%= customer.firstName ? `Hi ${customer.firstName}! ` : '' %><strong><%= customer.points %></strong> <%= customer.points === 1 ? 'point' : 'points' %></span>
+            <button type="submit" class="kiosk-rewards-signout">Sign out</button>
+        </form>
+        <% } else if (googleEnabled) { %>
+        <a class="kiosk-rewards kiosk-rewards-signin" href="/auth/google/customer">Sign in with Google to earn points</a>
+        <% } %>
         <span class="kiosk-order-badge" aria-label="Your order"><span aria-hidden="true">♡</span> Your order <strong id="kiosk-cart-count">0</strong>
     </header>
 
+    <% if (signinError) { %><p class="kiosk-signin-error" role="alert"><%= signinError %></p><% } %>
     <main class="kiosk-main">
         <section class="kiosk-hero" aria-labelledby="kiosk-welcome">
             <div class="kiosk-hero-copy">
