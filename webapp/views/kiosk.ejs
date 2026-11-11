@@ -8,6 +8,7 @@
         </a>
         <a href="/" class="portal-back">Back to Portal</a>
         <p class="kiosk-top-note">Freshly made. Made your way.</p>
+        <%- include('partials/accessibility') %>
         <span class="kiosk-order-badge" aria-label="Your order"><span aria-hidden="true">♡</span> Your order <strong id="kiosk-cart-count">0</strong></span>
     </header>
 
@@ -16,14 +17,14 @@
         <section class="kiosk-welcome-card" aria-labelledby="kiosk-welcome-title">
             <div class="kiosk-welcome-art" aria-hidden="true"><span>✿</span><div class="welcome-cup"><i></i><b>● ● ●</b></div></div>
             <div class="kiosk-welcome-copy">
-                <p class="kiosk-eyebrow">WELCOME TO POPPING BOBA</p>
-                <h1 id="kiosk-welcome-title">A little boba,<br><em>a lot of joy.</em></h1>
-                <p>Tell us what to call you, then build your perfect drink.</p>
+                <p class="kiosk-eyebrow" data-i18n="welcome.eyebrow">WELCOME TO POPPING BOBA</p>
+                <h1 id="kiosk-welcome-title" data-i18n="welcome.title">A little boba,<br><em>a lot of joy.</em></h1>
+                <p data-i18n="welcome.description">Tell us what to call you, then build your perfect drink.</p>
                 <form id="kiosk-name-form" class="kiosk-name-form">
-                    <label for="kiosk-customer-name">Your name</label>
+                    <label for="kiosk-customer-name" data-i18n="welcome.nameLabel">Your name</label>
                     <input id="kiosk-customer-name" name="customerName" type="text" maxlength="40" autocomplete="given-name" placeholder="Enter your name" required>
                     <p id="kiosk-name-error" class="kiosk-message" role="alert"></p>
-                    <button class="kiosk-primary kiosk-start-button" type="submit">Start my order <span aria-hidden="true">→</span></button>
+                    <button class="kiosk-primary kiosk-start-button" type="submit"><span data-i18n="welcome.startOrder">Start my order</span> <span aria-hidden="true">→</span></button>
                 </form>
                 <p class="kiosk-welcome-note">No account needed. Just good drinks.</p>
             </div>
@@ -41,12 +42,12 @@
             <div class="kiosk-hero-art" aria-hidden="true"></div>
         </section>
         <section id="kiosk-menu" class="kiosk-menu-section" aria-labelledby="kiosk-menu-title">
-            <div class="kiosk-section-heading"><div><p class="kiosk-eyebrow">Our Menu</p><h2 id="kiosk-menu-title">Find Your Drink</h2></div><p>Choose a drink, then customize every detail.</p></div>
+            <div class="kiosk-section-heading"><div><p class="kiosk-eyebrow">Our Menu</p><h2 id="kiosk-menu-title" data-i18n="menu.title">Find Your Drink</h2></div><p data-i18n="menu.instructions">Choose a drink, then customize every detail.</p></div>
             <div id="kiosk-message" class="kiosk-message" role="alert"></div>
             <div class="kiosk-menu-tools"><nav id="kiosk-categories" class="kiosk-categories" aria-label="Filter drinks"></nav><label class="kiosk-search"><span class="sr-only">Search drinks</span><span aria-hidden="true">⌕</span><input id="kiosk-search" type="search" placeholder="Find a favorite…" autocomplete="off"></label></div>
             <div id="kiosk-menu-grid" class="kiosk-menu-grid" aria-live="polite"><p class="kiosk-empty">Getting the good stuff ready…</p></div>
         </section>
-        <section class="kiosk-bottom-note"><p><strong>A little note from us</strong><br>Every drink is made fresh. Customize sweetness, ice, size, and toppings to make it yours.</p></section>
+        <section class="kiosk-bottom-note"><p><strong data-i18n="menu.noteTitle">A little note from us</strong><br><span data-i18n="menu.noteBody">Every drink is made fresh. Customize sweetness, ice, size, and toppings to make it yours.</span></p></section>
     </main>
     <aside id="kiosk-cart-bar" class="kiosk-cart-bar" aria-label="Your order summary" hidden>
         <div class="kiosk-cart-summary"><span class="kiosk-cart-icon" aria-hidden="true">♡</span><div><strong id="kiosk-cart-label">Your order is waiting</strong><small id="kiosk-cart-hint">Add a drink to get started</small></div></div>

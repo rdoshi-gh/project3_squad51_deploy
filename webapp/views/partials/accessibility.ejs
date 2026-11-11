@@ -1,0 +1,40 @@
+<div class="accessibility-widget">
+    <button id="accessibility-toggle" class="accessibility-toggle" type="button" aria-expanded="false" aria-controls="accessibility-panel">
+        <span aria-hidden="true">◉</span> Accessibility
+    </button>
+    <section id="accessibility-panel" class="accessibility-panel" aria-label="Accessibility settings" hidden>
+        <div class="accessibility-heading">
+            <h2>Accessibility settings</h2>
+            <button id="accessibility-close" class="accessibility-close" type="button" aria-label="Close accessibility settings">×</button>
+        </div>
+        <div class="accessibility-group">
+            <label for="accessibility-language">Language / Idioma</label>
+            <select id="accessibility-language" data-i18n-control="language">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+            </select>
+            <p class="accessibility-help">Language selection is ready for the translation API integration.</p>
+        </div>
+        <div class="accessibility-group">
+            <span class="accessibility-label">Text size</span>
+            <div class="accessibility-actions">
+                <button type="button" id="accessibility-text-smaller" aria-label="Decrease text size">A−</button>
+                <button type="button" id="accessibility-text-larger" aria-label="Increase text size">A+</button>
+                <button type="button" id="accessibility-text-reset">Reset text</button>
+            </div>
+        </div>
+        <div class="accessibility-group">
+            <span class="accessibility-label">Button size</span>
+            <div class="accessibility-actions">
+                <button type="button" id="accessibility-controls-smaller">Smaller</button>
+                <button type="button" id="accessibility-controls-larger">Larger</button>
+                <button type="button" id="accessibility-controls-reset">Reset buttons</button>
+            </div>
+        </div>
+        <div class="accessibility-group">
+            <label class="accessibility-check"><input id="accessibility-high-contrast" type="checkbox"> High contrast</label>
+            <label class="accessibility-check"><input id="accessibility-readable-spacing" type="checkbox"> More text spacing</label>
+        </div>
+        <p id="accessibility-status" class="accessibility-status" role="status" aria-live="polite"></p>
+    </section>
+</div>

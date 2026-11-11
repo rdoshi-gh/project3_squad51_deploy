@@ -312,3 +312,7 @@ legend { font-weight: 600; padding: 0 8px; }
     .kiosk-drink-card, .kiosk-add-drink, .kiosk-checkout, .kiosk-hero-cta, .kiosk-start-button { transition: none; }
     .kiosk-drink-card:hover, .kiosk-add-drink:hover, .kiosk-checkout:hover, .kiosk-hero-cta:hover, .kiosk-start-button:hover { transform: none; }
 }
+
+@media (prefers-reduced-motion: reduce) {
+    .kiosk-page *, .kiosk-page *::before, .kiosk-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
