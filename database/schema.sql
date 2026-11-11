@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS inventory_items (
 
 CREATE TABLE IF NOT EXISTS customer_orders (
     order_id         INTEGER       PRIMARY KEY,
-    employee_id      INTEGER       NOT NULL REFERENCES employees(employee_id)
+    employee_id      INTEGER       NOT NULL REFERENCES employees(employee_id),
     order_timestamp  TIMESTAMP     NOT NULL,
     total_price      NUMERIC(8,2)  NOT NULL
 );
@@ -35,7 +35,12 @@ CREATE TABLE IF NOT EXISTS order_items (
     order_item_id  INTEGER  PRIMARY KEY,
     order_id       INTEGER  NOT NULL REFERENCES customer_orders(order_id),
     menu_item_id   INTEGER  NOT NULL REFERENCES menu_items(menu_item_id),
-    quantity       INTEGER  NOT NULL
+    quantity       INTEGER  NOT NULL,
+    size           TEXT     NOT NULL DEFAULT 'Regular' CHECK (size IN ('Small', 'Regular', 'Large')),
+    sweetness       INTEGER  NOT NULL DEFAULT 100 CHECK (sweetness BETWEEN 0 AND 100),
+    ice             TEXT     NOT NULL DEFAULT 'Regular' CHECK (ice IN ('No', 'Light', 'Regular', 'Extra')),
+    topping_ids     INTEGER[] NOT NULL DEFAULT '{}',
+    unit_price      NUMERIC(8,2) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS recipes (

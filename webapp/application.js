@@ -22,7 +22,7 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     app.use((req, res, next) => {
         res.set('X-Content-Type-Options', 'nosniff');
         res.set('Referrer-Policy', 'same-origin');
-        res.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+        res.set('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://images.unsplash.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
         if (!req.path.startsWith('/static/')) res.set('Cache-Control', 'no-store');
         req.session = session.read(req);
         if (!['GET', 'HEAD', 'OPTIONS'].includes(req.method) && req.get('origin')) {
@@ -79,7 +79,8 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     app.get('/api/menu', requireSession(), route(async (req, res) => res.json(await db.query('SELECT * FROM menu_items ORDER BY category, name, menu_item_id'))));
     app.get('/api/kiosk/menu', route(async (req, res) => res.json(await db.query('SELECT menu_item_id, name, category, price FROM menu_items ORDER BY category, name, menu_item_id'))));
     app.post('/api/kiosk/orders', route(async (req, res) => {
-        res.status(201).json(await saveOrder(db, 6, req.body.lines));
+        const customerName = req.body.customerName === undefined ? '' : text(req.body.customerName, 'Customer name', 40);
+        res.status(201).json(await saveOrder(db, 6, req.body.lines, customerName));
     }));
     app.post('/api/orders', requireSession('cashier'), route(async (req, res) => res.status(201).json(await saveOrder(db, req.session.employeeId, req.body.lines))));
     app.use('/api/kitchen', requireSession('kitchen'));
