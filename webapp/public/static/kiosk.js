@@ -24,12 +24,14 @@
         return node;
     };
     const button = (label, action, primary = false) => make('button', { type: 'button', class: primary ? 'kiosk-primary' : 'kiosk-secondary', onclick: action }, label);
-    let menu = [], cart = [], activeCategory = 'All drinks', busy = false;
+    const SIZE_FACTORS = Object.freeze({ Small: 0.8, Regular: 1, Large: 1.25 });
+    let menu = [], cart = [], activeCategory = 'All drinks', busy = false, customerName = '';
     const findItem = id => menu.find(item => Number(item.menu_item_id) === Number(id));
     const isTopping = item => String(item.category).toLowerCase() === 'topping';
     const drinks = () => menu.filter(item => !isTopping(item));
     const cents = item => Math.round(Number(item.price) * 100);
-    const lineCents = line => cents(findItem(line.menuItemId)) + line.toppings.reduce((sum, id) => sum + cents(findItem(id)), 0);
+    const drinkCents = line => Math.round(Number(findItem(line.menuItemId).price) * SIZE_FACTORS[line.size || 'Regular'] * 100);
+    const lineCents = line => drinkCents(line) + line.toppings.reduce((sum, id) => sum + cents(findItem(id)), 0);
     const cartCents = () => cart.reduce((sum, line) => sum + lineCents(line) * line.quantity, 0);
     const drinkArt = item => {
         const category = String(item.category).toLowerCase();
@@ -39,7 +41,7 @@
         if (/lemon|tea|jasmine|oolong/i.test(item.name)) return '🍃';
         return '🥤';
     };
-    const optionsText = line => `${line.sweetness}% sweetness · ${line.ice === 'No' ? 'No ice' : `${line.ice} ice`}${line.toppings.length ? ` · ${line.toppings.map(id => findItem(id)?.name).filter(Boolean).join(', ')}` : ''}`;
+    const optionsText = line => `${line.size || 'Regular'} · ${line.sweetness}% sweetness · ${line.ice === 'No' ? 'No ice' : `${line.ice} ice`}${line.toppings.length ? ` · ${line.toppings.map(id => findItem(id)?.name).filter(Boolean).join(', ')}` : ''}`;
     function announce(text) { document.getElementById('kiosk-announcement').textContent = text; }
     function showDialog(title, content) {
         dialogBody.replaceChildren(make('h2', { id: 'kiosk-dialog-title' }, title), content);
@@ -76,6 +78,7 @@
     function customize(item, editIndex = -1) {
         const existing = editIndex >= 0 ? cart[editIndex] : null;
         const quantity = make('input', { type: 'number', min: '1', max: '99', step: '1', required: '', value: existing?.quantity || 1, 'aria-label': 'Quantity' });
+        const size = make('select', { 'aria-label': 'Drink size' }, Object.keys(SIZE_FACTORS).map(value => make('option', { value, selected: value === (existing?.size || 'Regular') }, `${value}${value === 'Small' ? ' · 20% less' : value === 'Large' ? ' · 25% more' : ''}`)));
         const sweetness = make('select', { 'aria-label': 'Sweetness level' }, [0, 25, 50, 75, 100].map(value => make('option', { value, selected: String(value) === String(existing?.sweetness ?? 100) }, `${value}%`)));
         const ice = make('select', { 'aria-label': 'Ice level' }, ['No', 'Light', 'Regular', 'Extra'].map(value => make('option', { value, selected: value === (existing?.ice || 'Regular') }, value === 'No' ? 'No ice' : `${value} ice`)));
         const toppingItems = menu.filter(isTopping);
@@ -86,11 +89,12 @@
         const price = make('strong', {}, '');
         const form = make('form', { class: 'kiosk-form-stack' });
         const field = (label, control) => make('div', { class: 'kiosk-form-field' }, make('label', {}, label, control));
-        form.append(field('How many?', quantity), field('Sweetness', sweetness), field('Ice level', ice));
+        form.append(field('How many?', quantity), field('Drink size', size), field('Sweetness', sweetness), field('Ice level', ice));
         if (toppingControls.length) form.append(make('fieldset', {}, make('legend', {}, 'Make it extra special'), make('div', { class: 'kiosk-topping-options' }, toppingControls.map(({ topping, check }) => make('label', {}, check, `${topping.name} (+${money(topping.price)})`)))));
         const preview = () => {
-            const total = cents(item) + toppingControls.filter(row => row.check.checked).reduce((sum, row) => sum + cents(row.topping), 0);
-            price.textContent = `Item subtotal: ${money(total * Math.max(1, Number(quantity.value) || 1) / 100)}`;
+            const drinkTotal = Math.round(Number(item.price) * SIZE_FACTORS[size.value] * 100);
+            const toppingTotal = toppingControls.filter(row => row.check.checked).reduce((sum, row) => sum + cents(row.topping), 0);
+            price.textContent = `Item subtotal: ${money((drinkTotal + toppingTotal) * Math.max(1, Number(quantity.value) || 1) / 100)}`;
         };
         form.append(price);
         const actions = make('div', { class: 'kiosk-dialog-actions' }, button('Cancel', () => dialog.close()), make('button', { type: 'submit', class: 'kiosk-primary' }, existing ? 'Save changes' : 'Add to order'));
@@ -100,10 +104,10 @@
             event.preventDefault();
             const count = Number(quantity.value);
             if (!Number.isInteger(count) || count < 1 || count > 99) { quantity.focus(); return; }
-            const line = { menuItemId: Number(item.menu_item_id), quantity: count, sweetness: Number(sweetness.value), ice: ice.value, toppings: toppingControls.filter(row => row.check.checked).map(row => Number(row.topping.menu_item_id)) };
+            const line = { menuItemId: Number(item.menu_item_id), quantity: count, size: size.value, sweetness: Number(sweetness.value), ice: ice.value, toppings: toppingControls.filter(row => row.check.checked).map(row => Number(row.topping.menu_item_id)) };
             if (existing) cart[editIndex] = line;
             else {
-                const match = cart.find(row => row.menuItemId === line.menuItemId && row.ice === line.ice && row.sweetness === line.sweetness && [...row.toppings].sort().join(',') === [...line.toppings].sort().join(',') && row.quantity + line.quantity <= 99);
+                const match = cart.find(row => row.menuItemId === line.menuItemId && row.size === line.size && row.ice === line.ice && row.sweetness === line.sweetness && [...row.toppings].sort().join(',') === [...line.toppings].sort().join(',') && row.quantity + line.quantity <= 99);
                 if (match) match.quantity += line.quantity; else cart.push(line);
             }
             dialog.close(); drawCartSummary(); announce(`${item.name} added to your order.`);
@@ -116,13 +120,21 @@
         const renderLines = () => {
             list.replaceChildren(...(cart.length ? cart.map((line, index) => {
                 const item = findItem(line.menuItemId);
-                const details = make('div', {},
-                    make('strong', {}, `${line.quantity} × ${item.name}`),
-                    make('p', {}, optionsText(line)),
-                    make('div', { class: 'kiosk-line-actions' },
-                        button('Edit', () => customize(item, index)),
-                        button('Remove', () => { cart.splice(index, 1); drawCartSummary(); renderLines(); })
-                    )
+                const quantityControls = make('div', { class: 'kiosk-quantity-controls' },
+                    make('button', { type: 'button', class: 'kiosk-quantity-button', 'aria-label': `Decrease quantity of ${item.name}`, onclick: () => {
+                        if (line.quantity > 1) line.quantity--; else cart.splice(index, 1);
+                        drawCartSummary(); renderLines();
+                    } }, '−'),
+                    make('strong', { class: 'kiosk-quantity-number' }, line.quantity),
+                    make('button', { type: 'button', class: 'kiosk-quantity-button', 'aria-label': `Increase quantity of ${item.name}`, disabled: line.quantity >= 99, onclick: () => {
+                        if (line.quantity < 99) line.quantity++;
+                        drawCartSummary(); renderLines();
+                    } }, '+')
+                );
+                const details = make('div', {}, make('strong', {}, item.name), make('p', {}, optionsText(line)), quantityControls,
+                    make('div', { class: 'kiosk-line-actions' }, button('Edit', () => customize(item, index)), button('Remove', () => {
+                        cart.splice(index, 1); drawCartSummary(); renderLines();
+                    }))
                 );
                 return make('div', { class: 'kiosk-cart-line' }, details, make('strong', {}, money(lineCents(line) * line.quantity / 100)));
             }) : [make('p', { class: 'kiosk-empty' }, 'Your order is empty. Add a drink to continue.') ]));
@@ -139,7 +151,7 @@
         if (busy) return;
         busy = true; submit.disabled = true; drawCartSummary(); error.textContent = '';
         try {
-            const response = await fetch('/api/kiosk/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lines: cart }) });
+            const response = await fetch('/api/kiosk/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerName, lines: cart }) });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'We could not place your order. Please try again.');
             cart = []; drawCartSummary();
