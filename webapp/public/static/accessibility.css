@@ -1,0 +1,49 @@
+/* Shared accessibility controls */
+.accessibility-widget { position: relative; z-index: 30; display: inline-flex; flex: 0 0 auto; align-items: center; font-size: 16px; }
+.accessibility-toggle { min-height: 44px; padding: 10px 16px; border: 2px solid currentColor; border-radius: 24px; background: #fff; color: #173d2a; font-weight: 700; box-shadow: 0 3px 12px #0002; }
+.accessibility-panel { position: absolute; top: calc(100% + 8px); right: 0; box-sizing: border-box; width: min(370px, calc(100vw - 24px)); max-height: min(640px, calc(100vh - 110px)); max-height: min(640px, calc(100dvh - 110px)); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 18px; border: 2px solid #53665a; border-radius: 14px; background: #fff; background-clip: padding-box; color: #202820; box-shadow: 0 12px 36px #0004; font-size: calc(16px * var(--accessibility-text-scale, 1)); line-height: 1.45; }
+.accessibility-panel[hidden] { display: none !important; }
+.accessibility-panel > * { box-sizing: border-box; max-width: 100%; min-width: 0; }
+.accessibility-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.accessibility-heading h2 { margin: 0; font-size: 20px; }
+.accessibility-close { min-width: 44px; min-height: 44px; padding: 0; border: 1px solid #9aa99d; border-radius: 50%; background: #f2f5f2; color: #17251b; font-size: 25px; }
+.accessibility-group { display: flex; flex-direction: column; gap: 9px; min-width: 0; padding: 12px 0; border-top: 1px solid #d5ddd6; }
+.accessibility-group > label, .accessibility-label { font-weight: 700; }
+.accessibility-group select { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid #68786c; border-radius: 8px; background: #fff; color: #111; }
+.accessibility-help, .accessibility-status { margin: 0; color: #46564a; font-size: 13px; overflow-wrap: anywhere; }
+.accessibility-actions { display: flex; flex-wrap: wrap; gap: 7px; min-width: 0; }
+.accessibility-actions button { box-sizing: border-box; min-height: 44px; max-width: 100%; padding: 8px 11px; border: 1px solid #68786c; border-radius: 8px; background: #f0f5f0; color: #17251b; font-weight: 700; white-space: normal; overflow-wrap: anywhere; }
+.accessibility-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; }
+.accessibility-check input { width: 22px; height: 22px; flex: 0 0 auto; accent-color: #174b2d; }
+
+/* Global accessibility scaling hooks */
+body { font-size: calc(16px * var(--accessibility-text-scale, 1)); }
+body button, body input, body select, body textarea { font-size: inherit; }
+body button { min-height: calc(44px * var(--accessibility-control-scale, 1)); padding: calc(11px * var(--accessibility-control-scale, 1)) calc(12px * var(--accessibility-control-scale, 1)); }
+body.accessibility-readable-spacing { line-height: 1.8; letter-spacing: .02em; }
+body.accessibility-readable-spacing p, body.accessibility-readable-spacing label { line-height: 1.8; }
+body.accessibility-high-contrast { background: #fff !important; color: #000 !important; }
+body.accessibility-high-contrast button, body.accessibility-high-contrast input, body.accessibility-high-contrast select, body.accessibility-high-contrast .panel, body.accessibility-high-contrast section { border-color: #000 !important; }
+body.accessibility-high-contrast button { border: 2px solid #000 !important; background: #fff !important; color: #000 !important; }
+body.accessibility-high-contrast a { color: #000 !important; text-decoration: underline; }
+body.accessibility-high-contrast .accessibility-panel { background: #fff !important; color: #000 !important; }
+.accessibility-toggle:focus-visible, .accessibility-panel button:focus-visible, .accessibility-panel select:focus-visible { outline: 3px solid #1456c0; outline-offset: 3px; }
+
+/* View-specific placement */
+.sidebar .accessibility-widget { width: 100%; }
+.sidebar .accessibility-toggle { width: 100%; justify-content: center; }
+.sidebar .accessibility-panel { right: auto; left: 0; }
+.cashier-header .toolbar, .header-actions { align-items: center; }
+.kiosk-topbar { z-index: 100; }
+.kiosk-topbar .accessibility-widget { z-index: 101; margin-left: auto; }
+.kiosk-topbar .accessibility-panel { z-index: 102; }
+
+/* Kiosk menu overlays the fixed order bar without changing its dimensions. */
+body.kiosk-page .kiosk-topbar { position: relative; z-index: 100; }
+body.kiosk-page .accessibility-widget { position: relative; z-index: 101; }
+body.kiosk-page .accessibility-panel { z-index: 102; }
+
+/* Responsive layout */
+@media (max-width: 700px) { .accessibility-panel { width: min(340px, calc(100vw - 28px)); max-height: calc(100dvh - 100px); } }
+@media (max-width: 520px) { .accessibility-panel { width: min(320px, calc(100vw - 20px)); } .cashier-header { flex-wrap: wrap; } .cashier-header .toolbar { flex: 1 1 100%; justify-content: flex-start; } .header-actions { justify-content: flex-start; } }
+@media (prefers-reduced-motion: reduce) { .accessibility-panel, .accessibility-panel * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
