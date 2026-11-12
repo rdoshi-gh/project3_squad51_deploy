@@ -22,11 +22,63 @@ body button, body input, body select, body textarea { font-size: inherit; }
 body button { min-height: calc(44px * var(--accessibility-control-scale, 1)); padding: calc(11px * var(--accessibility-control-scale, 1)) calc(12px * var(--accessibility-control-scale, 1)); }
 body.accessibility-readable-spacing { line-height: 1.8; letter-spacing: .02em; }
 body.accessibility-readable-spacing p, body.accessibility-readable-spacing label { line-height: 1.8; }
-body.accessibility-high-contrast { background: #fff !important; color: #000 !important; }
-body.accessibility-high-contrast button, body.accessibility-high-contrast input, body.accessibility-high-contrast select, body.accessibility-high-contrast .panel, body.accessibility-high-contrast section { border-color: #000 !important; }
-body.accessibility-high-contrast button { border: 2px solid #000 !important; background: #fff !important; color: #000 !important; }
+/* Override explicit kiosk colors as well as inherited text. Keep photographs
+   unchanged; contrast mode changes the interface rather than filtering images. */
+body.accessibility-high-contrast { background: #fff !important; color: #000 !important; color-scheme: light; }
+body.accessibility-high-contrast *,
+body.accessibility-high-contrast *::before,
+body.accessibility-high-contrast *::after {
+    color: inherit !important;
+    background-color: transparent !important;
+    background-image: none !important;
+    border-color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+/* Opaque surfaces keep menus, dialogs, and the fixed cart legible over content. */
+body.accessibility-high-contrast :is(header, main, section, aside, article, dialog, .panel) {
+    background: #fff !important;
+    color: #000 !important;
+    backdrop-filter: none !important;
+}
+body.accessibility-high-contrast :is(.kiosk-welcome-card, .kiosk-hero, .kiosk-drink-card, .kiosk-bottom-note, .accessibility-panel, dialog) {
+    border: 2px solid #000 !important;
+}
+body.accessibility-high-contrast :is(button, input, select, textarea, .button, .portal-back, .kiosk-search, .kiosk-rewards-signin) {
+    border: 2px solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    accent-color: #000;
+}
+body.accessibility-high-contrast ::placeholder { color: #000 !important; opacity: 1; }
 body.accessibility-high-contrast a { color: #000 !important; text-decoration: underline; }
-body.accessibility-high-contrast .accessibility-panel { background: #fff !important; color: #000 !important; }
+
+/* Filled actions and selected controls remain distinguishable from secondary
+   actions. Descendants inherit white text, including icons and button labels. */
+body.accessibility-high-contrast :is(.primary, .kiosk-primary, .kiosk-add-drink, .kiosk-checkout, .kiosk-start-button, .kiosk-hero-cta, .portal-button, button[aria-pressed="true"], nav a[aria-current="page"], .kiosk-order-badge strong) {
+    background: #000 !important;
+    color: #fff !important;
+    border-color: #000 !important;
+}
+body.accessibility-high-contrast :is(button, .button, .portal-back, .kiosk-rewards-signin):hover:not(:disabled) {
+    background: #000 !important;
+    color: #fff !important;
+    text-decoration: underline;
+}
+body.accessibility-high-contrast :is(button, input, select, textarea)[disabled]:disabled {
+    background: #fff !important;
+    color: #000 !important;
+    border-style: dashed !important;
+    opacity: 1 !important;
+}
+body.accessibility-high-contrast label:has(input:checked) { outline: 2px solid #000; outline-offset: 2px; }
+body.accessibility-high-contrast :focus-visible {
+    outline: 3px solid #000 !important;
+    outline-offset: 3px !important;
+    box-shadow: 0 0 0 3px #fff !important;
+}
+body.accessibility-high-contrast dialog::backdrop { background: rgb(0 0 0 / 75%) !important; backdrop-filter: none !important; }
 .accessibility-toggle:focus-visible, .accessibility-panel button:focus-visible, .accessibility-panel select:focus-visible { outline: 3px solid #1456c0; outline-offset: 3px; }
 
 /* View-specific placement */
