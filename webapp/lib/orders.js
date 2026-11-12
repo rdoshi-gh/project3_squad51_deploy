@@ -43,7 +43,10 @@ function buildOrder(raw, menu) {
 }
 
 
-async function saveOrder(db, employeeId, raw, customerName = '') {
+// Loyalty: customers earn 1 point per whole dollar spent.
+const pointsFor = total => Math.floor(total);
+
+async function saveOrder(db, employeeId, raw, customerName = '', { customerId } = {}) {
     return db.transaction(async client => {
         const orderId = await db.nextId(client, 'customer_orders', 'order_id');
         let itemId = await db.nextId(client, 'order_items', 'order_item_id');
@@ -109,10 +112,17 @@ async function saveOrder(db, employeeId, raw, customerName = '') {
         for (const need of needs) {
             await client.query('UPDATE inventory_items SET quantity = quantity - $1::numeric WHERE inventory_item_id = $2', [need.needed, need.inventory_item_id]);
         }
-        // Customer name is intentionally request/session-level only in Sprint 2; no customer table is added.
-        return { ...result.rows[0], total: order.totalCents / 100, customerName: customerName || undefined };
+        // Customer name is intentionally request/session-level only in Sprint 2.
+        const total = order.totalCents / 100;
+        const saved = { ...result.rows[0], total, customerName: customerName || undefined };
+        if (customerId) {
+            const earned = pointsFor(total);
+            const updated = await client.query('UPDATE customers SET points = points + $1 WHERE customer_id = $2 RETURNING points', [earned, customerId]);
+            if (updated.rows.length) return { ...saved, pointsEarned: earned, points: updated.rows[0].points };
+        }
+        return saved;
     });
 }
 
 
-module.exports = { buildOrder, saveOrder, SIZE_FACTORS };
+module.exports = { buildOrder, saveOrder, SIZE_FACTORS, pointsFor };

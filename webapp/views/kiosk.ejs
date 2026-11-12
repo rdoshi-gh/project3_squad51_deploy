@@ -9,10 +9,17 @@
         <a href="/" class="portal-back">Back to Portal</a>
         <p class="kiosk-top-note">Freshly made. Made your way.</p>
         <%- include('partials/accessibility') %>
+        <% if (customer) { %>
+        <form class="kiosk-rewards" method="post" action="/kiosk/sign-out">
+            <span class="kiosk-rewards-points"><%= customer.firstName ? `Hi ${customer.firstName}! ` : '' %><strong><%= customer.points %></strong> <%= customer.points === 1 ? 'point' : 'points' %></span>
+            <button type="submit" class="kiosk-rewards-signout">Sign out</button>
+        </form>
+        <% } %>
         <span class="kiosk-order-badge" aria-label="Your order"><span aria-hidden="true">♡</span> Your order <strong id="kiosk-cart-count">0</strong></span>
     </header>
 
 
+    <% if (signinError) { %><p class="kiosk-signin-error" role="alert"><%= signinError %></p><% } %>
     <main id="kiosk-welcome-screen" class="kiosk-welcome-screen">
         <section class="kiosk-welcome-card" aria-labelledby="kiosk-welcome-title">
             <div class="kiosk-welcome-art" aria-hidden="true"><span>✿</span><div class="welcome-cup"><i></i><b>● ● ●</b></div></div>
@@ -22,11 +29,18 @@
                 <p data-i18n="welcome.description">Tell us what to call you, then build your perfect drink.</p>
                 <form id="kiosk-name-form" class="kiosk-name-form">
                     <label for="kiosk-customer-name" data-i18n="welcome.nameLabel">Your name</label>
-                    <input id="kiosk-customer-name" name="customerName" type="text" maxlength="40" autocomplete="given-name" placeholder="Enter your name" required>
+                    <input id="kiosk-customer-name" name="customerName" type="text" maxlength="40" autocomplete="given-name" placeholder="Enter your name" value="<%= customer && customer.firstName ? customer.firstName : '' %>" required>
                     <p id="kiosk-name-error" class="kiosk-message" role="alert"></p>
                     <button class="kiosk-primary kiosk-start-button" type="submit"><span data-i18n="welcome.startOrder">Start my order</span> <span aria-hidden="true">→</span></button>
                 </form>
+                <% if (customer) { %>
+                <p class="kiosk-welcome-note">You're signed in. This order will earn rewards points.</p>
+                <% } else if (googleEnabled) { %>
+                <a class="kiosk-rewards-signin" href="/auth/google/customer">Sign in with Google to earn points</a>
+                <p class="kiosk-welcome-note">Optional. No account needed. Just good drinks.</p>
+                <% } else { %>
                 <p class="kiosk-welcome-note">No account needed. Just good drinks.</p>
+                <% } %>
             </div>
         </section>
     </main>

@@ -155,8 +155,12 @@
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'We could not place your order. Please try again.');
             cart = []; drawCartSummary();
-            const confirmation = make('div', { class: 'kiosk-form-stack' }, make('p', {}, 'Thank you! Your order has been sent to our team.'), make('div', { class: 'kiosk-grand-total' }, make('span', {}, `Order #${result.order_id}`), make('strong', {}, money(result.total))), make('div', { class: 'kiosk-dialog-actions' }, button('Start a new order', () => { dialog.close(); drawCartSummary(); document.getElementById('kiosk-menu').scrollIntoView({ behavior: 'smooth' }); }, true)));
-            showDialog('You made a good choice!', confirmation); announce(`Order ${result.order_id} placed successfully.`);
+            const rewarded = result.points !== undefined;
+            // A signed-in customer is signed out after checkout, so reload to show the signed-out kiosk.
+            const restart = rewarded ? () => location.assign('/kiosk') : () => { dialog.close(); drawCartSummary(); document.getElementById('kiosk-menu').scrollIntoView({ behavior: 'smooth' }); };
+            const pointsNote = rewarded ? `You earned ${result.pointsEarned} ${result.pointsEarned === 1 ? 'point' : 'points'} and now have ${result.points}.` : '';
+            const confirmation = make('div', { class: 'kiosk-form-stack' }, make('p', {}, 'Thank you! Your order has been sent to our team.'), ...(rewarded ? [make('p', { class: 'kiosk-points-earned' }, pointsNote)] : []), make('div', { class: 'kiosk-grand-total' }, make('span', {}, `Order #${result.order_id}`), make('strong', {}, money(result.total))), make('div', { class: 'kiosk-dialog-actions' }, button('Start a new order', restart, true)));
+            showDialog('You made a good choice!', confirmation); announce(`Order ${result.order_id} placed successfully. ${pointsNote}`);
         } catch (err) { error.textContent = err.message; }
         finally { busy = false; drawCartSummary(); }
     }

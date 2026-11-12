@@ -316,3 +316,12 @@ legend { font-weight: 600; padding: 0 8px; }
 @media (prefers-reduced-motion: reduce) {
     .kiosk-page *, .kiosk-page *::before, .kiosk-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+/* Kiosk rewards (Google sign-in) */
+.kiosk-rewards { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
+.kiosk-rewards-points { padding: 9px 14px; border: 1px solid #dce8dd; border-radius: 30px; background: #f0f5ef; color: var(--k-green); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.kiosk-rewards-signout { min-height: 38px; padding: 7px 13px; border: 1px solid var(--k-border); border-radius: 22px; background: white; color: var(--k-muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.kiosk-rewards-signout:hover { border-color: var(--k-green); background: var(--k-green); color: white; }
+.kiosk-rewards-signin { display: flex; align-items: center; justify-content: center; min-height: 52px; margin-top: 12px; padding: 12px 18px; border: 1px solid #747775; border-radius: 9px; background: #fff; color: #1f1f1f; font-weight: 700; text-decoration: none; }
+.kiosk-rewards-signin:hover { background: #f2f2f2; }
+.kiosk-signin-error { max-width: 980px; margin: 16px auto 0; padding: 12px 16px; border-radius: 9px; background: #fde8e8; color: #760909; font-weight: 600; }
+.kiosk-points-earned { font-weight: 700; color: var(--k-green); }
