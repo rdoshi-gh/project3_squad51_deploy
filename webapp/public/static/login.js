@@ -6,11 +6,23 @@
     const submit = document.getElementById('sign-in');
     const retry = document.getElementById('retry-login');
     const error = document.getElementById('login-error');
+    let employeeRows = [];
+    function drawEmployees() {
+        const selected = employees.value;
+        employees.replaceChildren(new Option('Select employee', ''), ...employeeRows.map(row => {
+            const role = window.POSLanguage ? window.POSLanguage.label(row.role) : row.role;
+            const option = new Option(`${row.name} · ${role} · #${row.employee_id}`, row.employee_id);
+            option.setAttribute('translate', 'no');
+            return option;
+        }));
+        employees.value = selected;
+    }
+    document.addEventListener('accessibility:language-change', drawEmployees);
     async function load() {
         error.textContent = ''; retry.hidden = true; employees.disabled = true; submit.disabled = true;
         try {
             const rows = await api(`/api/login-employees?view=${view}`);
-            employees.replaceChildren(new Option('Select employee', ''), ...rows.map(row => new Option(`${row.name} · ${row.role} · #${row.employee_id}`, row.employee_id)));
+            employeeRows = rows; drawEmployees();
             employees.disabled = !rows.length; submit.disabled = !rows.length;
             if (!rows.length) error.textContent = 'No employees available for this view.';
         } catch (err) { error.textContent = err.message; retry.hidden = false; }

@@ -7,7 +7,7 @@
     const status = document.getElementById('accessibility-status');
     const settings = { textScale: 1, controlScale: 1, highContrast: false, readableSpacing: false, language: 'en' };
     const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-    const textControls = 'button, input, select, textarea, [role="button"]';
+    const textControls = 'button, input, select, textarea, [role="button"], .button, .portal-button, .portal-back, nav a';
     const roundControls = '.kiosk-add-drink, .kiosk-quantity-button, .accessibility-close';
 
     function collectElements(root) {
@@ -131,8 +131,8 @@
         document.dispatchEvent(new CustomEvent('kiosk:language-change', { detail }));
 
         status.textContent = language === 'es'
-            ? 'Español seleccionado. La integración de traducción está pendiente.'
-            : 'English selected. Translation integration is ready to be connected.';
+            ? 'Español seleccionado.'
+            : 'English selected.';
     }
 
     toggle.addEventListener('click', () => {

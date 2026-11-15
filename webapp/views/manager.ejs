@@ -2,7 +2,8 @@
 <body data-view="manager">
     <div class="workspace">
         <aside class="sidebar panel">
-            <div><h1>MANAGER</h1><p class="employee-name"><%= employee.name %></p></div>
+            <div><h1>MANAGER</h1><p class="employee-name" translate="no"><%= employee.name %></p></div>
+            <%- include('partials/accessibility') %>
             <nav aria-label="Manager pages" id="manager-nav">
                 <% const pages = [['dashboard','Dashboard'], ['orders','Order History'], ['inventory','Inventory'], ['usage','Product Usage'], ['restocking','Restocking'], ['employees','Employees'], ['menu','Menu Items'], ['reports','Reports']]; %>
                 <% for (const [key, label] of pages) { %><a href="#<%= key %>" data-page="<%= key %>"><%= label %></a><% } %>

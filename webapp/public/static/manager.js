@@ -11,6 +11,7 @@
     const status = () => h('p', { class: 'error', role: 'alert' });
     const numberInput = (value, step = '0.01') => input(value, 'number', { min: 0, step, max: 99999999.99 });
     const go = page => { location.hash = page; };
+    const person = name => h('span', { translate: 'no' }, name);
 
     async function dashboard() {
         const { range, daily, top, low } = await get('dashboard');
@@ -36,7 +37,7 @@
                 const { rows, totals, top } = await api(`/api/manager/orders?${new URLSearchParams({ start: start.value, end: end.value })}`, { signal: request.signal });
                 if (seq !== sequence || pageSignal.aborted) return;
                 result.replaceChildren(panel(null, metrics([{ label: 'Orders', value: numeric(totals.orders) }, { label: 'Revenue', value: money(totals.revenue) }])),
-                    panel('Customer Orders', table(['Order ID', 'Employee', 'Date / Time', 'Total', 'Details'], rows.map(row => [row.order_id, row.employee || `#${row.employee_id}`, dateTime(row.order_timestamp), money(row.total_price),
+                    panel('Customer Orders', table(['Order ID', 'Employee', 'Date / Time', 'Total', 'Details'], rows.map(row => [row.order_id, person(row.employee || `#${row.employee_id}`), h('span', { translate: 'no' }, dateTime(row.order_timestamp)), money(row.total_price),
                         button('View Order', () => orderDetails(row.order_id))]), 'No orders in this date range.'),
                         h('p', { class: 'note' }, rows.length < Number(totals.orders) ? 'Showing the 500 most recent orders. Narrow the dates to see other orders. Times use the database clock.' : 'All orders in the selected period are shown. Times use the database clock.')),
                     panel('Ordering Trends', table(['Top Menu Items', 'Quantity Sold'], top.map(row => [row.name, numeric(row.quantity)]), 'No items sold in this period.')));
@@ -50,7 +51,7 @@
     async function orderDetails(orderId) {
         try {
             const { order, items } = await get(`orders/${orderId}`);
-            modal(`Order #${orderId}`, h('div', { class: 'stack' }, h('p', {}, `${order.employee || `Employee #${order.employee_id}`} · ${dateTime(order.order_timestamp)}`),
+            modal(`Order #${orderId}`, h('div', { class: 'stack' }, h('p', {}, person(order.employee || `Employee #${order.employee_id}`), ' · ', h('span', { translate: 'no' }, dateTime(order.order_timestamp))),
                 table(['Menu Item', 'Quantity', 'Current Unit Price'], items.map(row => [row.name, row.quantity, money(row.current_price)])), h('strong', {}, `Recorded order total: ${money(order.total_price)}`),
                 h('p', { class: 'note' }, 'Recorded order totals are preserved. Item prices reflect the current menu; historical customizations are not stored in the Project 2 database.')));
         } catch (err) { modal('Unable to Load Order', h('p', { class: 'error', role: 'alert' }, err.message)); }
@@ -62,7 +63,7 @@
             columns: ['Item', 'System Quantity', 'Unit', 'Reorder Level', 'Status', 'Actions'],
             cells: row => [row.name, numeric(row.quantity), row.unit, numeric(row.reorder_level), badge(Number(row.quantity) <= Number(row.reorder_level))] },
         employees: { title: 'Employee Records', singular: 'Employee', search: 'Search Employee', key: 'employee_id',
-            fields: [['name', 'Name'], ['role', 'Role', 'role']], columns: ['Employee ID', 'Name', 'Role', 'Actions'], cells: row => [row.employee_id, row.name, row.role] },
+            fields: [['name', 'Name'], ['role', 'Role', 'role']], columns: ['Employee ID', 'Name', 'Role', 'Actions'], cells: row => [row.employee_id, person(row.name), row.role] },
         menu: { title: 'Menu Items', singular: 'Menu Item', search: 'Search Menu', key: 'menu_item_id',
             fields: [['name', 'Item Name'], ['category', 'Category'], ['price', 'Price', 'number']], columns: ['Menu Item ID', 'Name', 'Category', 'Price', 'Actions'], cells: row => [row.menu_item_id, row.name, row.category, money(row.price)] }
     };
@@ -73,11 +74,13 @@
         const target = h('div');
         const refresh = () => loadPage();
         function draw() {
-            const filtered = rows.filter(row => `${row[def.key]} ${row.name} ${row.role || row.category || ''}`.toLowerCase().includes(search.value.toLowerCase()));
+            const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+            const searchable = text => window.POSLanguage ? window.POSLanguage.searchText(text) : text;
+            const filtered = rows.filter(row => normalize(`${row[def.key]} ${searchable(row.name)} ${searchable(row.role || row.category || '')}`).includes(normalize(search.value)));
             target.replaceChildren(table(def.columns, filtered.map(row => [...def.cells(row), actions(
                 button('Edit', () => editRecord(type, row, refresh)),
                 ...(type === 'menu' ? [button('Ingredients', () => ingredients(row))] : []),
-                button('Delete', () => confirm(`Delete ${def.singular}`, `Delete ${row.name}? Records linked to order or reorder history must be kept.`, async () => { await write(`${type}/${row[def.key]}`, 'DELETE'); await refresh(); }))
+                button('Delete', () => confirm(`Delete ${def.singular}`, h('span', {}, 'Delete ', type === 'employees' ? person(row.name) : row.name, '? Records linked to order or reorder history must be kept.'), async () => { await write(`${type}/${row[def.key]}`, 'DELETE'); await refresh(); }))
             )]), 'No matching records.'));
         }
         search.addEventListener('input', draw); draw();

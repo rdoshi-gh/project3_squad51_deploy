@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<head>
-    <title>Home Page</title>
-</head>
-<body>
+<%- include('partials/head', { title: 'Teammates', script: null }) %>
+<body class="center-page"><main class="entry-card panel">
+    <div class="page-accessibility"><%- include('partials/accessibility') %></div>
     <h1>Teammates</h1>
     <% for (var i in teammembers) {%>
-        <p>Name: <%=teammembers[i].first_name%> <%=teammembers[i].last_name%></p>
+        <p>Name: <span translate="no"><%=teammembers[i].first_name%> <%=teammembers[i].last_name%></span></p>
     <% } %>
-</body>
+</main></body>
+</html>

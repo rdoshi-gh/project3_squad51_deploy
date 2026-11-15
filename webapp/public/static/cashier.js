@@ -11,8 +11,10 @@
     const options = line => `${line.sweetness}% sweetness · ${line.ice === 'No' ? 'No ice' : `${line.ice} ice`}${line.toppings.length ? ` · ${line.toppings.map(id => find(id).name).join(', ')}` : ''}`;
     function change(action) { undo.push(snapshot()); if (undo.length > 50) undo.shift(); redo = []; action(); drawOrder(); }
     function drawMenu() {
-        const search = document.getElementById('menu-search').value.toLowerCase();
-        const rows = menu.filter(item => item.category.toLowerCase() !== 'topping' && (category === 'All Items' || item.category === category) && item.name.toLowerCase().includes(search));
+        const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const search = normalize(document.getElementById('menu-search').value);
+        const rows = menu.filter(item => item.category.toLowerCase() !== 'topping' && (category === 'All Items' || item.category === category)
+            && normalize(window.POSLanguage ? window.POSLanguage.searchText(item.name) : item.name).includes(search));
         grid.replaceChildren(...(rows.length ? rows.map(item => h('button', { type: 'button', class: 'menu-item', onclick: () => customize(item) }, h('strong', {}, item.name), h('span', {}, money(item.price)))) : [h('p', { class: 'empty' }, 'No matching menu items.')]));
     }
     function drawOrder() {
@@ -77,6 +79,9 @@
     }
     dialog.addEventListener('cancel', event => { if (committing) event.preventDefault(); });
     document.getElementById('menu-search').addEventListener('input', drawMenu);
+    document.addEventListener('translation:updated', () => {
+        if (document.getElementById('menu-search').value.trim()) drawMenu();
+    });
     document.getElementById('undo').addEventListener('click', () => { if (undo.length) { redo.push(snapshot()); order = undo.pop(); drawOrder(); } });
     document.getElementById('redo').addEventListener('click', () => { if (redo.length) { undo.push(snapshot()); order = redo.pop(); drawOrder(); } });
     document.getElementById('reset-order').addEventListener('click', () => confirm('Reset Order', 'Remove all items from this order?', async () => change(() => { order = []; }), 'Reset Order'));

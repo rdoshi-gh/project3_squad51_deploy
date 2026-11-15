@@ -1,6 +1,7 @@
 <%- include('partials/head', { title: `${view === 'manager' ? 'Manager' : 'Cashier'} Sign In`, script: 'login' }) %>
 <body data-view="<%= view %>" class="center-page">
     <main class="entry-card panel">
+        <div class="page-accessibility"><%- include('partials/accessibility') %></div>
         <a href="/" class="portal-back">Back to Portal</a>
         <p class="eyebrow">Popping POS</p>
         <h1><%= view === 'manager' ? 'Manager' : 'Cashier' %> Sign In</h1>
