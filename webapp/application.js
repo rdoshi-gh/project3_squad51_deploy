@@ -8,12 +8,13 @@ const { InputError, id, text, number, dateRange } = require('./lib/validation');
 const { getReport, getRange, LAST_WEEK } = require('./lib/reports');
 const { saveOrder } = require('./lib/orders');
 const { createTranslator } = require('./lib/translation');
+const { createWeather } = require('./lib/weather');
 const {
     getKitchenOrders,
     markKitchenOrderReady
 } = require('./lib/kitchen');
 
-function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express(), fetchImpl, translationFetch, env } = {}) {
+function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express(), fetchImpl, translationFetch, weatherFetch, env } = {}) {
     const session = sessions(secret);
     const route = handler => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
     app.disable('x-powered-by');
@@ -75,6 +76,7 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         });
     }
     app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'Popping POS' }));
+    app.get('/api/kiosk/weather', route(createWeather({ env, fetchImpl: weatherFetch })));
     app.post('/api/translate', route(createTranslator({
         fetchImpl: translationFetch, contactEmail: (env || process.env).MYMEMORY_EMAIL || ''
     })));

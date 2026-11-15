@@ -1,4 +1,32 @@
 (() => {
+    async function refreshWeather() {
+        const cards = document.querySelectorAll('.kiosk-weather');
+        try {
+            const response = await fetch('/api/kiosk/weather');
+            const weather = await response.json();
+            cards.forEach(card => {
+                if (weather.location) card.querySelector('.kiosk-weather-location').textContent = weather.location;
+            });
+            if (!response.ok) throw new Error('Unavailable');
+            const code = weather.conditionId;
+            const icon = code < 300 ? 'ϟ' : code < 600 ? '☂' : code < 700 ? '❄' : code < 800 ? '≋' : code === 800 ? (weather.night ? '☾' : '☀') : '☁';
+            cards.forEach(card => {
+                card.querySelector('.kiosk-weather-icon').textContent = icon;
+                card.querySelector('.kiosk-weather-temp').textContent = `${weather.temperature}°F`;
+                card.querySelector('.kiosk-weather-description').textContent = weather.description;
+                card.querySelector('.kiosk-weather-detail').textContent = `Feels like ${weather.feelsLike}°F · Made for a tea break`;
+            });
+        } catch {
+            cards.forEach(card => {
+                card.querySelector('.kiosk-weather-icon').textContent = '☁';
+                card.querySelector('.kiosk-weather-temp').textContent = '';
+                card.querySelector('.kiosk-weather-description').textContent = 'Weather taking a little break';
+                card.querySelector('.kiosk-weather-detail').textContent = 'Your favorite tea is still on the menu.';
+            });
+        }
+    }
+    refreshWeather();
+    setInterval(refreshWeather, 10 * 60 * 1000);
     const grid = document.getElementById('kiosk-menu-grid');
     const message = document.getElementById('kiosk-message');
     const categoriesHost = document.getElementById('kiosk-categories');

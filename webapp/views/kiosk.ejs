@@ -26,6 +26,7 @@
                 <p class="kiosk-eyebrow" data-i18n="welcome.eyebrow">WELCOME TO POPPING BOBA</p>
                 <h1 id="kiosk-welcome-title" data-i18n="welcome.title">A little boba,<br><em>a lot of joy.</em></h1>
                 <p data-i18n="welcome.description">Tell us what to call you, then build your perfect drink.</p>
+                <%- include('partials/weather') %>
                 <form id="kiosk-name-form" class="kiosk-name-form">
                     <label for="kiosk-customer-name" data-i18n="welcome.nameLabel">Your name</label>
                     <input id="kiosk-customer-name" name="customerName" type="text" maxlength="40" autocomplete="given-name" placeholder="Enter your name" value="<%= customer && customer.firstName ? customer.firstName : '' %>" required>
@@ -50,6 +51,7 @@
                 <p class="kiosk-eyebrow">MADE FOR YOU, <span id="kiosk-name-greeting" translate="no">BOBA FAN</span></p>
                 <h1 id="kiosk-welcome">Explore our<br><em>Menu.</em></h1>
                 <p>Pick a favorite, make it yours, and we'll make it fresh.</p>
+                <%- include('partials/weather') %>
                 <a class="kiosk-hero-cta" href="#kiosk-menu">Find Your Drink <span aria-hidden="true">↓</span></a>
             </div>
             <div class="kiosk-hero-art" aria-hidden="true"></div>

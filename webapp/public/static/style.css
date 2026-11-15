@@ -161,6 +161,15 @@ legend { font-weight: 600; padding: 0 8px; }
 .kiosk-start-button { min-height: 52px; margin-top: 7px; padding: 12px 18px; border-radius: 9px; background: var(--k-green) !important; box-shadow: 0 6px 14px #285b4320; color: white !important; font-weight: 700; }
 .kiosk-start-button:hover { background: var(--k-green-dark) !important; transform: translateY(-1px); }
 .kiosk-welcome-note { margin-top: 18px; color: #879389; font-size: 12px; }
+.kiosk-weather { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; max-width: 390px; margin: 22px 0; padding: 15px 17px; border: 1px solid #dce6d8; border-radius: 14px; background: linear-gradient(120deg, #f0f5ec, #fafbf6); color: var(--k-green); }
+.kiosk-weather-icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: 50%; background: #e2ecd9; font-size: 30px; line-height: 1; }
+.kiosk-weather-copy { flex: 1 1 170px; min-width: 0; }
+.kiosk-weather-location { display: block; color: #50634f; font-size: 11px; font-weight: 700; letter-spacing: .6px; }
+.kiosk-weather-reading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 4px 0; }
+.kiosk-weather-temp { font-size: 25px; letter-spacing: -1px; line-height: 1.2; }
+.kiosk-weather-description { font-size: 13px; text-transform: capitalize; }
+.kiosk-weather-detail { display: block; color: #52654f; font-size: 11px; line-height: 1.5; }
+.kiosk-weather-credit { margin-left: auto; color: #52654f; font-size: 10px !important; text-underline-offset: 3px; }
 
 .kiosk-topbar { position: sticky; top: 0; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 78px; padding: 14px max(5%, calc((100% - 1150px) / 2)); border-bottom: 1px solid #e8ece6; background: rgb(255 255 255 / 94%); box-shadow: 0 4px 18px #233c2a08; backdrop-filter: blur(12px); }
 .kiosk-brand { display: flex; align-items: center; gap: 12px; color: var(--k-green); text-decoration: none; }
