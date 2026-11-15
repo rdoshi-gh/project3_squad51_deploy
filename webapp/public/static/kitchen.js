@@ -6,6 +6,7 @@ const readyList = document.getElementById('ready-orders');
 const message = document.getElementById('kitchen-message');
 let isLoading = false;
 let isUpdating = false;
+let previousOrders = '';
 
 async function api(url, options = {}) {
     const response = await fetch(url, { credentials: 'same-origin', ...options });
@@ -24,6 +25,7 @@ async function api(url, options = {}) {
 function orderCard(order, isReady) {
     const article = document.createElement('article');
     article.className = 'order-card';
+    article.dataset.orderId = order.order_id;
     const heading = document.createElement('div');
     heading.className = 'order-heading';
     const title = document.createElement('h3');
@@ -97,10 +99,23 @@ async function refreshOrders() {
     isLoading = true;
     try {
         const orders = await api('/api/kitchen/orders');
-        renderList(progressList, orders.inProgress, false);
-        renderList(readyList, orders.ready, true);
-        document.getElementById('in-progress-count').textContent = orders.inProgress.length;
-        document.getElementById('ready-count').textContent = orders.ready.length;
+        const snapshot = JSON.stringify(orders);
+        // Leave unchanged cards in place: polling must not discard keyboard
+        // focus or repeatedly replace already-translated/scaled content.
+        if (snapshot !== previousOrders) {
+            const focusedOrder = document.activeElement.matches('.mark-ready')
+                ? document.activeElement.closest('.order-card')?.dataset.orderId : null;
+            renderList(progressList, orders.inProgress, false);
+            renderList(readyList, orders.ready, true);
+            document.getElementById('in-progress-count').textContent = orders.inProgress.length;
+            document.getElementById('ready-count').textContent = orders.ready.length;
+            previousOrders = snapshot;
+            if (focusedOrder) {
+                const replacement = [...progressList.querySelectorAll('.order-card')]
+                    .find(card => card.dataset.orderId === focusedOrder)?.querySelector('.mark-ready');
+                (replacement || document.getElementById('refresh-button')).focus();
+            }
+        }
         message.classList.remove('error');
         message.textContent = 'Live · checking every 5 seconds';
     } catch (error) {

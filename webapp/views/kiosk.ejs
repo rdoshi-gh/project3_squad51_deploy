@@ -4,20 +4,19 @@
     <header class="kiosk-topbar">
         <a class="kiosk-brand" href="/kiosk" aria-label="Popping Boba home">
             <span class="kiosk-brand-mark" aria-hidden="true">✿</span>
-            <span><strong>Popping</strong><small>BOBA & TEA</small></span>
+            <span translate="no"><strong>Popping</strong><small>BOBA & TEA</small></span>
         </a>
         <a href="/" class="portal-back">Back to Portal</a>
         <p class="kiosk-top-note">Freshly made. Made your way.</p>
         <%- include('partials/accessibility') %>
         <% if (customer) { %>
         <form class="kiosk-rewards" method="post" action="/kiosk/sign-out">
-            <span class="kiosk-rewards-points"><%= customer.firstName ? `Hi ${customer.firstName}! ` : '' %><strong><%= customer.points %></strong> <%= customer.points === 1 ? 'point' : 'points' %></span>
+            <span class="kiosk-rewards-points"><% if (customer.firstName) { %>Hi <span translate="no"><%= customer.firstName %></span>! <% } %><strong><%= customer.points %></strong> <%= customer.points === 1 ? 'point' : 'points' %></span>
             <button type="submit" class="kiosk-rewards-signout">Sign out</button>
         </form>
         <% } %>
         <span class="kiosk-order-badge" aria-label="Your order"><span aria-hidden="true">♡</span> Your order <strong id="kiosk-cart-count">0</strong></span>
     </header>
-
 
     <% if (signinError) { %><p class="kiosk-signin-error" role="alert"><%= signinError %></p><% } %>
     <main id="kiosk-welcome-screen" class="kiosk-welcome-screen">
@@ -48,7 +47,7 @@
     <main id="kiosk-order-screen" class="kiosk-main" hidden>
         <section class="kiosk-hero" aria-labelledby="kiosk-welcome">
             <div class="kiosk-hero-copy">
-                <p class="kiosk-eyebrow">MADE FOR YOU, <span id="kiosk-name-greeting">BOBA FAN</span></p>
+                <p class="kiosk-eyebrow">MADE FOR YOU, <span id="kiosk-name-greeting" translate="no">BOBA FAN</span></p>
                 <h1 id="kiosk-welcome">Explore our<br><em>Menu.</em></h1>
                 <p>Pick a favorite, make it yours, and we'll make it fresh.</p>
                 <a class="kiosk-hero-cta" href="#kiosk-menu">Find Your Drink <span aria-hidden="true">↓</span></a>

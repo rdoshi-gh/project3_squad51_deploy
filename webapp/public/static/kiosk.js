@@ -59,8 +59,10 @@
         }));
     }
     function drawMenu() {
-        const query = search.value.trim().toLowerCase();
-        const rows = drinks().filter(item => (activeCategory === 'All drinks' || item.category === activeCategory) && `${item.name} ${item.category}`.toLowerCase().includes(query));
+        const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        const query = normalize(search.value.trim());
+        const searchable = text => window.POSLanguage ? window.POSLanguage.searchText(text) : text;
+        const rows = drinks().filter(item => (activeCategory === 'All drinks' || item.category === activeCategory) && normalize(`${searchable(item.name)} ${searchable(item.category)}`).includes(query));
         grid.replaceChildren(...(rows.length ? rows.map((item, index) => {
             const art = make('div', { class: 'kiosk-drink-art', 'data-tone': String(index % 5), 'aria-hidden': 'true' }, drinkArt(item));
             const add = make('button', { type: 'button', class: 'kiosk-add-drink', 'aria-label': `Customize ${item.name}, ${money(item.price)}`, onclick: () => customize(item) }, '+');
@@ -174,6 +176,7 @@
     });
     document.getElementById('kiosk-review').addEventListener('click', reviewCart);
     search.addEventListener('input', drawMenu);
+    document.addEventListener('translation:updated', () => { if (search.value.trim()) drawMenu(); });
     dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
     async function loadMenu() {
         message.textContent = ''; grid.replaceChildren(make('p', { class: 'kiosk-empty' }, 'Getting the good stuff ready…'));

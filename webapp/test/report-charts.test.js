@@ -68,7 +68,7 @@ for (const type of ['daily', 'top', 'sales', 'inventory', 'restock', 'hourly', '
         ui.run('manager');
         await flush();
         if (type !== 'usage') {
-            const select = ui.document.querySelector('select');
+            const select = ui.document.querySelector('#manager-main select');
             select.value = type;
             ui.findButton('Refresh Report', ui.document).click();
             await flush();
@@ -110,7 +110,7 @@ test('X Report hides historical dates and restores them for other reports', asyn
     ui.run('manager'); await flush();
     const dates = [...ui.document.querySelectorAll('input[type="date"]')];
     const originalDates = dates.map(input => input.value);
-    const type = ui.document.querySelector('select');
+    const type = ui.document.querySelector('#manager-main select');
     type.value = 'hourly';
     ui.findButton('Refresh Report', ui.document).click(); await flush();
     assert.ok(dates.every(input => input.disabled && input.parentElement.hidden));

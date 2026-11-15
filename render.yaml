@@ -32,3 +32,5 @@ services:
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
+      - key: MYMEMORY_EMAIL
+        sync: false

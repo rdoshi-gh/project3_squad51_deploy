@@ -55,7 +55,7 @@ test('a customer Google sign-in enrolls them and shows their points on the kiosk
     assert.deepEqual(calls.at(-1).values, ['Reveille.BubbleTea@gmail.com']);
     const cookie = done.headers.get('set-cookie').split(', ').find(c => c.startsWith('popping_customer=')).split(';')[0];
     const html = await (await fetch(`${base}/kiosk`, { headers: { Cookie: cookie } })).text();
-    assert.match(html, /Hi Rev!/);
+    assert.match(html, /Hi <span translate="no">Rev<\/span>!/);
     assert.match(html, /<strong>12<\/strong> points/);
     const signOut = await fetch(`${base}/kiosk/sign-out`, { method: 'POST', headers: { Cookie: cookie }, redirect: 'manual' });
     assert.match(signOut.headers.get('set-cookie'), /popping_customer=;/);

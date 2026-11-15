@@ -121,7 +121,7 @@ window.POS = (() => {
     function announce(message) { const target = document.getElementById('announcement'); if (target) target.textContent = message; }
     document.getElementById('profile')?.addEventListener('click', event => {
         const employee = event.currentTarget.dataset;
-        modal('User Profile', h('div', { class: 'stack' }, h('strong', {}, employee.name), h('p', {}, `Role: ${employee.role}`), h('p', {}, `Employee #${employee.employeeId}`)));
+        modal('User Profile', h('div', { class: 'stack' }, h('strong', { translate: 'no' }, employee.name), h('p', {}, `Role: ${employee.role}`), h('p', {}, `Employee #${employee.employeeId}`)));
     });
     document.getElementById('logout')?.addEventListener('click', () => confirm('Log Out', 'Leave this workspace?', async () => {
         const result = await send('/api/logout', 'POST');

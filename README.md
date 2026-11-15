@@ -199,6 +199,70 @@ The public Customer Kiosk is available at `/kiosk` and is linked from the Portal
 
 Before enabling kiosk checkout against the existing Project 2 database, run `database/project2/sql_files/allow_kiosk_orders.sql` once. It allows `employee_id` to be `NULL` for customer-submitted orders; manager reports already use a left join when showing employee names. Do not run this migration against a different database without reviewing it.
 
+## Accessibility controls and Spanish translation
+
+The portal, employee sign-in pages, kiosk, cashier, manager (including Customer
+Orders/order history and reports), kitchen display, error page, and teammates
+example all expose the same Accessibility menu. Text size (90–150%), control
+size (100–150%), high contrast, text spacing, and language preferences carry
+between pages in the same browser using local storage. These support the team's
+selected Maria, Vishnu, and Carol personas; persona evaluation is still required.
+The kitchen retains its own design stylesheet while loading shared accessibility
+styles/scripts. Unchanged kitchen polling preserves existing cards and keyboard
+focus. New cards and dialogs receive the active settings automatically.
+On narrow screens the menu is fixed within the viewport and can scroll; Escape
+closes it and returns focus to the Accessibility button. In high contrast,
+report comparison bars use solid and striped fills to remain distinguishable.
+Employee/customer names and input values are excluded from translation requests.
+
+On any page, choose Accessibility → Language / Idioma → Español. The app
+translates page text, accessible labels, placeholders, menu names/categories,
+customization dialogs, cart details, and confirmation messages. New or renamed
+database menu items are translated when loaded; no code dictionary needs updating.
+Kiosk, cashier, and manager record searches accept English or translated Spanish
+names (with or without accents).
+Switching back to English restores the original text without clearing the order
+or changing form selections. Customer names, typed input, prices, and item IDs
+are preserved. The language preference uses the existing accessibility storage.
+Short ordering terms such as sweetness and ice use reviewed Spanish labels to
+avoid ambiguous dictionary matches. New menu names and other page text use the API.
+
+The server calls [MyMemory's keyless API](https://mymemory.translated.net/doc/spec.php)
+through `/api/translate`; no API key is needed.
+Anonymous usage is limited to [5,000 characters per day](https://mymemory.translated.net/doc/usagelimits.php).
+Set `MYMEMORY_EMAIL` to a valid contact email in the private `webapp/.env` and
+Render's Environment settings to use the documented free 50,000-character daily
+allowance. No account signup is required. This email is sent to MyMemory as the
+server-side `de` parameter; it is not embedded in the page or translation responses.
+The Blueprint declares this setting but its value must be supplied privately.
+The server caches successful source-text translations for 24 hours (up to 2,000
+segments per process), shares concurrent lookups, and limits requests per client.
+Caches reset when the server restarts; deployment instances have separate caches.
+Page/menu text is sent to MyMemory, but customer-name elements and input values
+are excluded. Translations are machine generated and may be imperfect.
+
+If a request fails or the free quota is exhausted, untranslated text stays usable
+in English and a bilingual notice offers Retry / Reintentar. The language menu
+always retains both language names so users can return to English. Successful
+segments remain cached when retrying. A production service with higher traffic
+may need a translation provider with a larger quota.
+
+On a Windows network that uses a locally trusted certificate authority, Node may
+report `UNABLE_TO_VERIFY_LEAF_SIGNATURE` for outbound HTTPS even though the browser
+works. With Node 22.19+ or Node 24.6+, use the system trust store (certificate
+verification stays enabled). In PowerShell, set `$env:NODE_USE_SYSTEM_CA = '1'`
+before `npm start`. This was needed and verified on the local development machine.
+
+Validate with `node --test test/translation.test.js test/accessibility-pages.test.js`.
+Tests use a mocked provider
+and sample menu data; they never consume translation quota or write team records.
+For manual checking, run `npm start`, switch to Spanish on `/kiosk`, customize a
+drink, review the cart, then switch back to English. To check a new menu item,
+use an isolated/sample database or an approved test item, reload the kiosk menu,
+and verify its name and category translate. Translation alone does not demonstrate
+all of Maria's persona requirements; document and evaluate additional support
+for her mobile, bilingual, and plain-language needs separately.
+
 ## Remaining Project 3 work
 
 This is the Project 2 migration, not a complete Project 3 submission. Customer

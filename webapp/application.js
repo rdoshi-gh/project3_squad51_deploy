@@ -7,12 +7,13 @@ const { googleAuth, readCustomer, signOutCustomer } = require('./lib/google-auth
 const { InputError, id, text, number, dateRange } = require('./lib/validation');
 const { getReport, getRange, LAST_WEEK } = require('./lib/reports');
 const { saveOrder } = require('./lib/orders');
+const { createTranslator } = require('./lib/translation');
 const {
     getKitchenOrders,
     markKitchenOrderReady
 } = require('./lib/kitchen');
 
-function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express(), fetchImpl, env } = {}) {
+function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express(), fetchImpl, translationFetch, env } = {}) {
     const session = sessions(secret);
     const route = handler => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
     app.disable('x-powered-by');
@@ -74,6 +75,9 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         });
     }
     app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'Popping POS' }));
+    app.post('/api/translate', route(createTranslator({
+        fetchImpl: translationFetch, contactEmail: (env || process.env).MYMEMORY_EMAIL || ''
+    })));
     app.get('/api/login-employees', route(async (req, res) => {
         if (!['cashier', 'manager', 'kitchen'].includes(req.query.view)) throw new InputError('Choose a valid employee view.');
         res.json(await db.query(`SELECT employee_id, name, role FROM employees ${req.query.view === 'manager' ? "WHERE LOWER(role) = 'manager'" : ''} ORDER BY name, employee_id`));

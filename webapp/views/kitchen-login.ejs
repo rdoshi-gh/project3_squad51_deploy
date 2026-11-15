@@ -1,14 +1,7 @@
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Kitchen Login | Popping POS</title>
-    <link rel="stylesheet" href="/static/kitchen.css">
-    <script defer src="/static/kitchen-login.js"></script>
-</head>
-<body class="kitchen-login-body">
+<%- include('partials/head', { title: 'Kitchen Login', script: 'kitchen-login', stylesheet: 'kitchen' }) %>
+<body class="kitchen-login-body" data-view="kitchen">
     <main class="kitchen-login-card">
+        <div class="page-accessibility"><%- include('partials/accessibility') %></div>
         <a class="back-link" href="/">← Back to portal</a>
         <h1>Kitchen Display</h1>
         <p>Select your employee profile to open the kitchen queue.</p>

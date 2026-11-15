@@ -1,7 +1,7 @@
 /* Shared accessibility controls */
 .accessibility-widget { position: relative; z-index: 30; display: inline-flex; flex: 0 0 auto; align-items: center; font-size: 16px; }
-.accessibility-toggle { min-height: 44px; padding: 10px 16px; border: 2px solid currentColor; border-radius: 24px; background: #fff; color: #173d2a; font-weight: 700; box-shadow: 0 3px 12px #0002; }
-.accessibility-panel { position: absolute; top: calc(100% + 8px); right: 0; box-sizing: border-box; width: min(370px, calc(100vw - 24px)); max-height: min(640px, calc(100vh - 110px)); max-height: min(640px, calc(100dvh - 110px)); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 18px; border: 2px solid #53665a; border-radius: 14px; background: #fff; background-clip: padding-box; color: #202820; box-shadow: 0 12px 36px #0004; font-size: calc(16px * var(--accessibility-text-scale, 1)); line-height: 1.45; }
+.accessibility-toggle { min-height: 44px; max-width: 100%; padding: 10px 16px; border: 2px solid currentColor; border-radius: 24px; background: #fff; color: #173d2a; font-weight: 700; box-shadow: 0 3px 12px #0002; overflow-wrap: anywhere; white-space: normal; }
+.accessibility-panel { position: fixed; top: 12px; right: 12px; box-sizing: border-box; width: min(370px, calc(100vw - 24px)); max-height: min(640px, calc(100vh - 24px)); max-height: min(640px, calc(100dvh - 24px)); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 18px; border: 2px solid #53665a; border-radius: 14px; background: #fff; background-clip: padding-box; color: #202820; box-shadow: 0 12px 36px #0004; font-size: calc(16px * var(--accessibility-text-scale, 1)); line-height: 1.45; }
 .accessibility-panel[hidden] { display: none !important; }
 .accessibility-panel > * { box-sizing: border-box; max-width: 100%; min-width: 0; }
 .accessibility-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
@@ -15,6 +15,11 @@
 .accessibility-actions button { box-sizing: border-box; min-height: 44px; max-width: 100%; padding: 8px 11px; border: 1px solid #68786c; border-radius: 8px; background: #f0f5f0; color: #17251b; font-weight: 700; white-space: normal; overflow-wrap: anywhere; }
 .accessibility-check { display: flex; align-items: center; gap: 10px; min-height: 44px; font-weight: 600; }
 .accessibility-check input { width: 22px; height: 22px; flex: 0 0 auto; accent-color: #174b2d; }
+.page-accessibility { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+.translation-feedback { position: fixed; z-index: 200; right: 12px; bottom: 12px; box-sizing: border-box; display: flex; align-items: center; flex-wrap: wrap; gap: 12px; width: min(540px, calc(100vw - 24px)); max-height: 40vh; overflow: auto; padding: 12px 18px; border: 2px solid #285b43; border-radius: 10px; background: #fff; color: #26332b; box-shadow: 0 4px 16px #0003; text-align: left; }
+.translation-feedback[hidden] { display: none !important; }
+.translation-feedback p { flex: 1 1 240px; margin: 0; font-size: 14px; }
+.translation-feedback button { flex-shrink: 0; }
 
 /* Global accessibility scaling hooks */
 body { font-size: calc(16px * var(--accessibility-text-scale, 1)); }
@@ -56,7 +61,7 @@ body.accessibility-high-contrast a { color: #000 !important; text-decoration: un
 
 /* Filled actions and selected controls remain distinguishable from secondary
    actions. Descendants inherit white text, including icons and button labels. */
-body.accessibility-high-contrast :is(.primary, .kiosk-primary, .kiosk-add-drink, .kiosk-checkout, .kiosk-start-button, .kiosk-hero-cta, .portal-button, button[aria-pressed="true"], nav a[aria-current="page"], .kiosk-order-badge strong) {
+body.accessibility-high-contrast :is(.primary, .mark-ready, .badge.low, .kiosk-primary, .kiosk-add-drink, .kiosk-checkout, .kiosk-start-button, .kiosk-hero-cta, .portal-button, button[aria-pressed="true"], nav a[aria-current="page"], .kiosk-order-badge strong) {
     background: #000 !important;
     color: #fff !important;
     border-color: #000 !important;
@@ -79,23 +84,38 @@ body.accessibility-high-contrast :focus-visible {
     box-shadow: 0 0 0 3px #fff !important;
 }
 body.accessibility-high-contrast dialog::backdrop { background: rgb(0 0 0 / 75%) !important; backdrop-filter: none !important; }
+body.accessibility-high-contrast .ready-label { border: 2px solid #000; }
+body.accessibility-high-contrast progress { border: 1px solid #000 !important; }
+body.accessibility-high-contrast progress::-webkit-progress-bar { background: #fff; }
+body.accessibility-high-contrast progress::-webkit-progress-value { background: #000; }
+body.accessibility-high-contrast progress::-moz-progress-bar { background: #000; }
+body.accessibility-high-contrast .chart-series-1 progress::-webkit-progress-value { background: repeating-linear-gradient(135deg, #000 0 4px, #fff 4px 7px); }
+body.accessibility-high-contrast .chart-series-1 progress::-moz-progress-bar { background: repeating-linear-gradient(135deg, #000 0 4px, #fff 4px 7px); }
 .accessibility-toggle:focus-visible, .accessibility-panel button:focus-visible, .accessibility-panel select:focus-visible { outline: 3px solid #1456c0; outline-offset: 3px; }
 
 /* View-specific placement */
 .sidebar .accessibility-widget { width: 100%; }
+.sidebar { z-index: 40; }
+/* Give enlarged navigation labels room instead of splitting words or squeezing
+   the Accessibility control. Small screens already use the stacked layout. */
+@media (min-width: 701px) { .workspace { grid-template-columns: calc(245px * var(--accessibility-text-scale, 1)) minmax(0, 1fr); } }
 .sidebar .accessibility-toggle { width: 100%; justify-content: center; }
-.sidebar .accessibility-panel { right: auto; left: 0; }
+.sidebar .accessibility-panel { right: auto; left: 12px; }
 .cashier-header .toolbar, .header-actions { align-items: center; }
+.cashier-header, .kitchen-header { flex-wrap: wrap; }
+.cashier-header .toolbar { flex: 1 1 340px; justify-content: flex-end; }
+.kitchen-header .header-actions { flex: 1 1 340px; justify-content: flex-end; }
 .kiosk-topbar { z-index: 100; }
 .kiosk-topbar .accessibility-widget { z-index: 101; margin-left: auto; }
 .kiosk-topbar .accessibility-panel { z-index: 102; }
 
 /* Kiosk menu overlays the fixed order bar without changing its dimensions. */
-body.kiosk-page .kiosk-topbar { position: relative; z-index: 100; }
+body.kiosk-page .kiosk-topbar { position: relative; z-index: 100; backdrop-filter: none; }
 body.kiosk-page .accessibility-widget { position: relative; z-index: 101; }
 body.kiosk-page .accessibility-panel { z-index: 102; }
 
 /* Responsive layout */
-@media (max-width: 700px) { .accessibility-panel { width: min(340px, calc(100vw - 28px)); max-height: calc(100dvh - 100px); } }
+@media (max-width: 700px) { .accessibility-panel { position: fixed; top: 12px; right: 12px; left: auto !important; width: min(340px, calc(100vw - 28px)); max-height: calc(100dvh - 24px); } }
+@media (max-width: 700px) { .sidebar .accessibility-panel { right: 12px; } }
 @media (max-width: 520px) { .accessibility-panel { width: min(320px, calc(100vw - 20px)); } .cashier-header { flex-wrap: wrap; } .cashier-header .toolbar { flex: 1 1 100%; justify-content: flex-start; } .header-actions { justify-content: flex-start; } }
 @media (prefers-reduced-motion: reduce) { .accessibility-panel, .accessibility-panel * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }

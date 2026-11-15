@@ -8,18 +8,18 @@
             <button id="accessibility-close" class="accessibility-close" type="button" aria-label="Close accessibility settings">×</button>
         </div>
         <div class="accessibility-group">
-            <label for="accessibility-language">Language / Idioma</label>
-            <select id="accessibility-language" data-i18n-control="language">
+            <label for="accessibility-language" translate="no">Language / Idioma</label>
+            <select id="accessibility-language" data-i18n-control="language" translate="no">
                 <option value="en">English</option>
                 <option value="es">Español</option>
             </select>
-            <p class="accessibility-help">Language selection is ready for the translation API integration.</p>
+            <p class="accessibility-help">Spanish translates this page, including new menu items. Switching languages keeps your current work.</p>
         </div>
         <div class="accessibility-group">
             <span class="accessibility-label">Text size</span>
             <div class="accessibility-actions">
-                <button type="button" id="accessibility-text-smaller" aria-label="Decrease text size">A−</button>
-                <button type="button" id="accessibility-text-larger" aria-label="Increase text size">A+</button>
+                <button type="button" id="accessibility-text-smaller" aria-label="Decrease text size"><span translate="no">A−</span></button>
+                <button type="button" id="accessibility-text-larger" aria-label="Increase text size"><span translate="no">A+</span></button>
                 <button type="button" id="accessibility-text-reset">Reset text</button>
             </div>
         </div>
@@ -36,5 +36,9 @@
             <label class="accessibility-check"><input id="accessibility-readable-spacing" type="checkbox"> More text spacing</label>
         </div>
         <p id="accessibility-status" class="accessibility-status" role="status" aria-live="polite"></p>
+    </section>
+    <section id="translation-feedback" class="translation-feedback" translate="no" aria-label="Translation / Traducción" hidden>
+        <p id="translation-status" role="status" aria-live="polite"></p>
+        <button id="translation-retry" type="button" hidden>Reintentar / Retry</button>
     </section>
 </div>
