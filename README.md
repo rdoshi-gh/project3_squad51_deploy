@@ -115,6 +115,14 @@ creates a `customers` row. Each kiosk order earns 1 point per whole dollar,
 credited in the same transaction as the order. Customer sessions last 15 minutes
 and end after checkout, since the kiosk is shared.
 
+**Lifetime Points.** Run `database/add_lifetime_points.sql` after
+`database/add_customers.sql` before deploying this branch. This adds a separate
+earned-points counter without changing redeemable balances. Existing accounts
+start at zero because previous redemption totals were not stored. Each signed-in
+purchase adds its earned points to both counters inside the order transaction;
+redemptions reduce only the redeemable balance. Failed orders roll back both.
+The migration can be run again without resetting tracked Lifetime Points.
+
 **Redeeming points.** At checkout, a signed-in customer can apply one reward
 from the catalog in `webapp/lib/rewards.js`: 25 points for $2 off, 50 points
 for $5 off, or 100 points for $12 off. The server validates the reward ID, rejects
