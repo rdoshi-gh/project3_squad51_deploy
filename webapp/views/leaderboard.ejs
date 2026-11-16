@@ -1,0 +1,43 @@
+<%- include('partials/head', { title: 'Rewards Leaderboard', script: 'leaderboard' }) %>
+<body class="kiosk-page leaderboard-page">
+    <a class="kiosk-skip-link" href="#leaderboard-main">Skip to leaderboard</a>
+    <header class="kiosk-topbar">
+        <a class="kiosk-brand" href="/kiosk" aria-label="Popping Boba home">
+            <span class="kiosk-brand-mark" aria-hidden="true">✿</span>
+            <span translate="no"><strong>Popping</strong><small>BOBA & TEA</small></span>
+        </a>
+        <nav class="leaderboard-nav" aria-label="Customer navigation">
+            <a class="portal-back" href="/kiosk">Back to menu</a>
+            <a class="portal-back" href="/">Back to Portal</a>
+        </nav>
+        <%- include('partials/accessibility') %>
+    </header>
+    <main id="leaderboard-main" class="kiosk-main leaderboard-main">
+        <section class="leaderboard-intro" aria-labelledby="leaderboard-title">
+            <p class="kiosk-eyebrow">POPPING REWARDS</p>
+            <h1 id="leaderboard-title">A little boba.<br><em>A lot of points.</em></h1>
+            <p>Meet the customers who have earned the most <strong>Lifetime Points</strong>.</p>
+            <p class="leaderboard-explanation">Lifetime Points count earnings since leaderboard tracking began. Redeeming rewards never lowers your score.</p>
+        </section>
+        <section class="leaderboard-card" aria-labelledby="leaderboard-heading">
+            <div class="leaderboard-heading">
+                <div><p class="kiosk-eyebrow">OUR TOP 10</p><h2 id="leaderboard-heading">Lifetime Points Leaderboard</h2></div>
+                <button id="leaderboard-refresh" type="button" class="kiosk-rewards-signout">Refresh</button>
+            </div>
+            <p id="leaderboard-error" class="kiosk-signin-error" role="alert" hidden></p>
+            <div id="leaderboard-results" aria-busy="true"><p class="leaderboard-message" role="status">Loading the leaderboard…</p></div>
+            <p class="leaderboard-footnote">Equal Lifetime Points share a rank. Up to 10 customers are shown.</p>
+        </section>
+        <section id="leaderboard-signin" class="leaderboard-card leaderboard-signin" aria-labelledby="leaderboard-join-title" hidden>
+            <h2 id="leaderboard-join-title">Make your next sip count.</h2>
+            <p>Sign in with Google to earn Lifetime Points with your orders.</p>
+            <% if (googleEnabled) { %>
+            <a class="kiosk-hero-cta" href="/auth/google/customer?returnTo=/leaderboard">Sign in with Google</a>
+            <% } else { %>
+            <p>Google sign-in is currently unavailable. You can still browse the leaderboard and order as a guest.</p>
+            <% } %>
+        </section>
+    </main>
+    <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -133,6 +133,14 @@ never returned. Names default to `Boba fan #<id>` until customers choose a publi
 display name through `PATCH /api/kiosk/leaderboard/profile`, authenticated with
 the existing Google customer session.
 
+The public `/leaderboard` page is linked from the kiosk and shares its styling,
+accessibility controls, and translation support. Google sign-in started from
+this page returns there after authentication. To preview sample leaderboard
+records without changing team data, run `node test/leaderboard-preview.js`
+from `webapp` and open `http://localhost:3002/leaderboard`. The optional
+`/preview/customer` shortcut uses a local test session; it exists only in this
+preview script and is never registered by the production server.
+
 **Redeeming points.** At checkout, a signed-in customer can apply one reward
 from the catalog in `webapp/lib/rewards.js`: 25 points for $2 off, 50 points
 for $5 off, or 100 points for $12 off. The server validates the reward ID, rejects

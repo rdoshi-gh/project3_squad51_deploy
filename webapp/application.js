@@ -52,6 +52,7 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     }
     const google = googleAuth({ app, db, session, fetchImpl, env });
     app.get('/', (req, res) => res.render('index'));
+    app.get('/leaderboard', (req, res) => res.render('leaderboard', { googleEnabled: google.enabled }));
     // The customer kiosk is public; employee workspaces still require sign-in.
     app.get('/kiosk', route(async (req, res) => {
         const signedIn = readCustomer(session, req);

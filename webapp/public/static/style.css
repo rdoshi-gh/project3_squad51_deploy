@@ -325,6 +325,42 @@ legend { font-weight: 600; padding: 0 8px; }
 @media (prefers-reduced-motion: reduce) {
     .kiosk-page *, .kiosk-page *::before, .kiosk-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+/* Rewards leaderboard uses the customer kiosk's colors and controls. */
+.leaderboard-page { padding-bottom: 32px; }
+.leaderboard-nav { display: flex; flex-wrap: wrap; gap: 10px; }
+.leaderboard-main { max-width: 1000px; }
+.leaderboard-intro { padding: 28px 0 32px; max-width: 700px; }
+.leaderboard-intro h1 { margin: 12px 0 18px; font-size: clamp(34px,5vw,52px); line-height: 1.1; letter-spacing: -1.3px; }
+.leaderboard-intro h1 em { color: var(--k-green); font-style: normal; }
+.leaderboard-intro p { line-height: 1.65; }
+.leaderboard-explanation, .leaderboard-footnote { color: #526157; font-size: 14px; }
+.leaderboard-card { margin-bottom: 24px; padding: clamp(18px,3vw,30px); border: 1px solid var(--k-border); border-radius: 18px; background: white; box-shadow: 0 8px 26px #263d2b08; }
+.leaderboard-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px; margin-bottom: 20px; }
+.leaderboard-heading h2 { margin: 0; color: var(--k-ink); font-size: clamp(22px,3vw,28px); }
+.leaderboard-heading .kiosk-eyebrow { margin-bottom: 6px; }
+.leaderboard-table { width: 100%; }
+.leaderboard-table th, .leaderboard-table td { padding: 18px 12px; }
+.leaderboard-table thead { background: #f0f5ef; color: var(--k-green); }
+.leaderboard-table th { white-space: normal; }
+.leaderboard-table tbody th { font-weight: 600; border-bottom: 1px solid #d0d0d0; }
+.leaderboard-table tbody tr:last-child th { border-bottom: 0; }
+.leaderboard-table th:last-child, .leaderboard-table td:last-child { text-align: right; }
+.leaderboard-rank { width: 80px; color: var(--k-green); font-weight: 700; }
+.leaderboard-name { overflow-wrap: anywhere; }
+.leaderboard-points { font-weight: 700; font-variant-numeric: tabular-nums; }
+.leaderboard-you { background: var(--k-light-green); }
+.leaderboard-you-label { display: inline-block; margin-left: 10px; padding: 3px 9px; border: 1px solid currentColor; border-radius: 20px; color: var(--k-green); font-size: 12px; }
+.leaderboard-footnote { margin: 18px 0 0; }
+.leaderboard-message { padding: 24px 0; line-height: 1.6; }
+.leaderboard-signin p { margin: 12px 0; line-height: 1.6; }
+@media (max-width: 700px) {
+    .leaderboard-page .kiosk-topbar { flex-wrap: wrap; gap: 12px; padding: 14px 20px; }
+    .leaderboard-nav { order: 3; width: 100%; }
+    .leaderboard-table th, .leaderboard-table td { padding: 16px 8px; }
+    .leaderboard-rank { width: auto; }
+    .leaderboard-you-label { margin: 6px 0 0; }
+}
+
 /* Kiosk rewards (Google sign-in) */
 .kiosk-rewards { display: inline-flex; align-items: center; gap: 8px; margin: 0; }
 .kiosk-rewards-points { padding: 9px 14px; border: 1px solid #dce8dd; border-radius: 30px; background: #f0f5ef; color: var(--k-green); font-size: 13px; font-weight: 600; white-space: nowrap; }
