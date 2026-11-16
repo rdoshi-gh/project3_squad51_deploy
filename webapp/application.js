@@ -10,6 +10,7 @@ const { saveOrder } = require('./lib/orders');
 const { REWARDS } = require('./lib/rewards');
 const { createTranslator } = require('./lib/translation');
 const { createWeather } = require('./lib/weather');
+const schedule = require('./lib/schedule');
 const {
     getKitchenOrders,
     markKitchenOrderReady
@@ -131,7 +132,14 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     app.patch('/api/kitchen/orders/:id/ready', route(async (req, res) => {
         res.json(await markKitchenOrderReady(db, id(req.params.id)));
     }));
+    app.get('/api/schedule', requireSession('cashier'), route(async (req, res) => res.json(await schedule.readSchedule(db, req.query.week, false))));
     app.use('/api/manager', requireSession('manager'));
+    app.get('/api/manager/schedule', route(async (req, res) => res.json(await schedule.readSchedule(db, req.query.week, true))));
+    app.post('/api/manager/schedule/shifts', route(async (req, res) => res.status(201).json(await schedule.saveShift(db, req.body))));
+    app.patch('/api/manager/schedule/shifts/:id', route(async (req, res) => res.json(await schedule.saveShift(db, req.body, id(req.params.id)))));
+    app.delete('/api/manager/schedule/shifts/:id', route(async (req, res) => res.json(await schedule.deleteShift(db, id(req.params.id)))));
+    app.post('/api/manager/schedule/publish', route(async (req, res) => res.json(await schedule.publishWeek(db, req.body.week))));
+    app.post('/api/manager/schedule/copy', route(async (req, res) => res.json(await schedule.copyWeek(db, req.body.week))));
     app.get('/api/manager/range', route(async (req, res) => res.json(await getRange(db))));
     app.get('/api/manager/reports', route(async (req, res) => res.json(await getReport(db, req.query.type, req.query.start, req.query.end))));
     app.get('/api/manager/dashboard', route(async (req, res) => {

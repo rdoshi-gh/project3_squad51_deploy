@@ -246,7 +246,7 @@
         return [header(usageOnly ? 'Product Usage' : 'Reports', toolbar(...(!usageOnly ? [field('Report Type', type)] : []), startField, endField, hourlyScope, button('Refresh Report', load)), ...(shortcuts ? [h('div', { class: 'note' }, shortcuts)] : []), error), result];
     }
 
-    const builders = { dashboard, orders, inventory: () => records('inventory'), 'inventory-review': inventoryReview, usage: () => reporting(true), restocking, employees: () => records('employees'), menu: () => records('menu'), reports: () => reporting() };
+    const builders = { dashboard, orders, schedule: () => [window.POSSchedule.create({ editable: true, signal: controller.signal })], inventory: () => records('inventory'), 'inventory-review': inventoryReview, usage: () => reporting(true), restocking, employees: () => records('employees'), menu: () => records('menu'), reports: () => reporting() };
     async function loadPage() {
         controller.abort(); controller = new AbortController(); const current = ++generation;
         const page = location.hash.slice(1) || 'dashboard';
