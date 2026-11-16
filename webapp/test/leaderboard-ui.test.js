@@ -77,3 +77,97 @@ test('the public page is still available when local Google OAuth is not configur
     assert.equal(d.querySelector('a[href^="/auth/google"]'), null);
     assert.match(d.getElementById('leaderboard-signin').textContent, /Google sign-in is currently unavailable/);
 });
+
+const me = { displayName: 'Boba fan #12', hasDisplayName: false, rank: 12, lifetimePoints: 20, points: 75 };
+
+test('the personal panel distinguishes Lifetime Points, balance, and an outside-Top-10 rank', async t => {
+    const { d } = await openLeaderboard(t, async () => json({ leaders, me }));
+    await until(() => !d.getElementById('leaderboard-personal').hidden);
+    assert.equal(d.getElementById('leaderboard-my-rank').textContent, '#12');
+    assert.equal(d.getElementById('leaderboard-my-points').textContent, '20');
+    assert.equal(d.getElementById('leaderboard-my-balance').textContent, '75');
+    assert.equal(d.getElementById('leaderboard-display-name').value, '', 'anonymous labels are not submitted as chosen names');
+    assert.equal(d.getElementById('leaderboard-signin').hidden, true);
+});
+
+test('zero Lifetime Points show an unranked state even with a spendable balance', async t => {
+    const { d } = await openLeaderboard(t, async () => json({ leaders, me: { ...me, rank: null, lifetimePoints: 0 } }));
+    await until(() => !d.getElementById('leaderboard-personal').hidden);
+    assert.equal(d.getElementById('leaderboard-my-rank').textContent, 'Not ranked yet');
+    assert.equal(d.getElementById('leaderboard-unranked').hidden, false);
+});
+
+test('Refresh preserves an unsaved display name, then save updates the public ranking', async t => {
+    let name = null;
+    const writes = [];
+    const { d, w } = await openLeaderboard(t, async (url, options) => {
+        if (options?.method === 'PATCH') {
+            writes.push(JSON.parse(options.body)); name = writes.at(-1).displayName.trim();
+            return json({ displayName: name });
+        }
+        return json({ leaders: name ? [{ rank: 1, displayName: name, lifetimePoints: 20, isYou: true }] : [],
+            me: { ...me, displayName: name || me.displayName, hasDisplayName: Boolean(name) } });
+    });
+    await until(() => !d.getElementById('leaderboard-personal').hidden);
+    const input = d.getElementById('leaderboard-display-name');
+    input.value = '  Tea Explorer  '; input.dispatchEvent(new w.Event('input'));
+    d.getElementById('leaderboard-refresh').click();
+    await until(() => !d.getElementById('leaderboard-refresh').disabled);
+    assert.equal(input.value, '  Tea Explorer  ');
+    d.getElementById('leaderboard-name-form').dispatchEvent(new w.Event('submit', { cancelable: true }));
+    await until(() => d.querySelector('.leaderboard-name')?.textContent === 'Tea Explorer');
+    assert.deepEqual(writes, [{ displayName: '  Tea Explorer  ' }]);
+    assert.equal(input.value, 'Tea Explorer');
+    assert.match(d.getElementById('leaderboard-name-message').textContent, /saved/);
+});
+
+test('a pending name save prevents duplicates and a failed save preserves the draft for retry', async t => {
+    let release, writes = 0;
+    const { d, w } = await openLeaderboard(t, async (url, options) => {
+        if (options?.method === 'PATCH') {
+            writes++;
+            return new Promise(resolve => { release = () => resolve({ ok: false, status: 401,
+                json: async () => ({ error: 'Sign in with Google to choose a display name.' }) }); });
+        }
+        return json({ leaders, me });
+    });
+    await until(() => !d.getElementById('leaderboard-personal').hidden);
+    const form = d.getElementById('leaderboard-name-form');
+    d.getElementById('leaderboard-display-name').value = 'Tea Explorer';
+    form.dispatchEvent(new w.Event('submit', { cancelable: true }));
+    form.dispatchEvent(new w.Event('submit', { cancelable: true }));
+    assert.equal(writes, 1);
+    assert.equal(d.getElementById('leaderboard-save-name').disabled, true);
+    release();
+    await until(() => !d.getElementById('leaderboard-save-name').disabled);
+    assert.match(d.getElementById('leaderboard-name-message').textContent, /Sign in with Google/);
+    assert.equal(d.getElementById('leaderboard-name-message').getAttribute('role'), 'alert');
+    assert.equal(d.getElementById('leaderboard-display-name').value, 'Tea Explorer');
+});
+
+test('shared accessibility and translation preserve customer names and editable input', async t => {
+    const batches = [];
+    const { d, w } = await openLeaderboard(t, async (url, options) => {
+        if (url === '/api/translate') {
+            const { texts } = JSON.parse(options.body); batches.push(...texts);
+            return json({ translations: texts.map(text => `ES ${text}`) });
+        }
+        return json({ leaders: [{ rank: 1, displayName: 'Private Display Name', lifetimePoints: 20, isYou: true }],
+            me: { ...me, displayName: 'Private Display Name', hasDisplayName: true } });
+    });
+    await until(() => !d.getElementById('leaderboard-personal').hidden);
+    w.TextEncoder = TextEncoder;
+    w.localStorage.setItem('pos-accessibility-settings', JSON.stringify({ language: 'es', textScale: 1.5, controlScale: 1.5, highContrast: true, readableSpacing: true }));
+    const observers = [], Observer = w.MutationObserver;
+    w.MutationObserver = class extends Observer { constructor(callback) { super(callback); observers.push(this); } };
+    t.after(() => observers.forEach(observer => observer.disconnect()));
+    for (const script of ['accessibility', 'translation']) w.eval(readFileSync(path.join(__dirname, `../public/static/${script}.js`), 'utf8'));
+    await until(() => d.documentElement.lang === 'es' && batches.length && d.getElementById('translation-feedback').hidden);
+    assert.equal(d.querySelector('.leaderboard-name').textContent, 'Private Display Name');
+    assert.equal(d.getElementById('leaderboard-display-name').value, 'Private Display Name');
+    assert.equal(d.body.classList.contains('accessibility-high-contrast'), true);
+    assert.ok(!batches.some(text => text.includes('Private Display Name')));
+    d.getElementById('accessibility-language').value = 'en';
+    d.getElementById('accessibility-language').dispatchEvent(new w.Event('change'));
+    assert.equal(d.querySelector('.leaderboard-name').textContent, 'Private Display Name');
+});

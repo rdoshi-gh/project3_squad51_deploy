@@ -135,7 +135,11 @@ the existing Google customer session.
 
 The public `/leaderboard` page is linked from the kiosk and shares its styling,
 accessibility controls, and translation support. Google sign-in started from
-this page returns there after authentication. To preview sample leaderboard
+this page returns there after authentication. A signed-in customer can see their
+own rank, Lifetime Points, and separate redeemable balance, and can choose or
+change their public display name. Zero-point customers receive a clear unranked
+state. Refresh preserves unsaved name edits; a successful save refreshes the
+ranking. To preview sample leaderboard
 records without changing team data, run `node test/leaderboard-preview.js`
 from `webapp` and open `http://localhost:3002/leaderboard`. The optional
 `/preview/customer` shortcut uses a local test session; it exists only in this

@@ -353,12 +353,24 @@ legend { font-weight: 600; padding: 0 8px; }
 .leaderboard-footnote { margin: 18px 0 0; }
 .leaderboard-message { padding: 24px 0; line-height: 1.6; }
 .leaderboard-signin p { margin: 12px 0; line-height: 1.6; }
+.leaderboard-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+.leaderboard-metrics > div { display: flex; flex-direction: column; gap: 8px; }
+.leaderboard-metrics span { color: #526157; font-size: 14px; }
+.leaderboard-metrics strong { color: var(--k-green); font-size: 28px; overflow-wrap: anywhere; }
+.leaderboard-name-form { display: flex; flex-wrap: wrap; align-items: start; gap: 16px; margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--k-border); }
+.leaderboard-name-form .field { flex: 1 1 260px; }
+.leaderboard-name-form input { border: 1px solid var(--k-border); border-radius: 9px; background: #fbfcfa; }
+.leaderboard-name-form button { align-self: center; margin-top: 0; }
+.leaderboard-name-form .leaderboard-footnote { margin-top: 0; }
+.leaderboard-signout { margin-top: 18px; }
 @media (max-width: 700px) {
     .leaderboard-page .kiosk-topbar { flex-wrap: wrap; gap: 12px; padding: 14px 20px; }
     .leaderboard-nav { order: 3; width: 100%; }
     .leaderboard-table th, .leaderboard-table td { padding: 16px 8px; }
     .leaderboard-rank { width: auto; }
     .leaderboard-you-label { margin: 6px 0 0; }
+    .leaderboard-metrics { grid-template-columns: 1fr; gap: 16px; }
+    .leaderboard-name-form button { width: 100%; }
 }
 
 /* Kiosk rewards (Google sign-in) */

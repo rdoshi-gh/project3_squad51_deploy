@@ -19,6 +19,25 @@
             <p>Meet the customers who have earned the most <strong>Lifetime Points</strong>.</p>
             <p class="leaderboard-explanation">Lifetime Points count earnings since leaderboard tracking began. Redeeming rewards never lowers your score.</p>
         </section>
+        <section id="leaderboard-personal" class="leaderboard-card" aria-labelledby="leaderboard-personal-title" hidden>
+            <div class="leaderboard-heading"><div><p class="kiosk-eyebrow">YOUR REWARDS</p><h2 id="leaderboard-personal-title">Your place on the leaderboard</h2></div></div>
+            <div class="leaderboard-metrics">
+                <div><span>Your rank</span><strong id="leaderboard-my-rank"></strong></div>
+                <div><span>Lifetime Points</span><strong id="leaderboard-my-points" translate="no"></strong></div>
+                <div><span>Points available to redeem</span><strong id="leaderboard-my-balance" translate="no"></strong></div>
+            </div>
+            <p id="leaderboard-unranked" class="leaderboard-footnote" hidden>Earn your first Lifetime Points with a signed-in order to join the rankings.</p>
+            <form id="leaderboard-name-form" class="leaderboard-name-form">
+                <div class="field">
+                    <label for="leaderboard-display-name">Your public display name</label>
+                    <input id="leaderboard-display-name" name="displayName" type="text" maxlength="40" required autocomplete="off" aria-describedby="leaderboard-name-help" placeholder="Choose a leaderboard name">
+                    <p id="leaderboard-name-help" class="leaderboard-footnote">Only this name is public. Until you choose one, an anonymous customer label is shown.</p>
+                </div>
+                <button id="leaderboard-save-name" class="kiosk-primary kiosk-start-button" type="submit">Save display name</button>
+            </form>
+            <p id="leaderboard-name-message" class="leaderboard-footnote" role="status"></p>
+            <form class="leaderboard-signout" method="post" action="/kiosk/sign-out"><button type="submit" class="kiosk-rewards-signout">Sign out</button></form>
+        </section>
         <section class="leaderboard-card" aria-labelledby="leaderboard-heading">
             <div class="leaderboard-heading">
                 <div><p class="kiosk-eyebrow">OUR TOP 10</p><h2 id="leaderboard-heading">Lifetime Points Leaderboard</h2></div>

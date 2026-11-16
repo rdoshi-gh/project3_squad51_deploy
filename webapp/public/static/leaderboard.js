@@ -1,8 +1,33 @@
 (() => {
-    const { h, api, numeric, announce } = POS;
+    const { h, api, send, numeric, announce } = POS;
     const results = document.getElementById('leaderboard-results');
     const error = document.getElementById('leaderboard-error');
     const refresh = document.getElementById('leaderboard-refresh');
+    const personal = document.getElementById('leaderboard-personal');
+    const nameForm = document.getElementById('leaderboard-name-form');
+    const nameInput = document.getElementById('leaderboard-display-name');
+    const saveName = document.getElementById('leaderboard-save-name');
+    const nameMessage = document.getElementById('leaderboard-name-message');
+    let loading = false, saving = false, nameDirty = false;
+
+    function renderPersonal(me) {
+        personal.hidden = !me;
+        document.getElementById('leaderboard-signin').hidden = Boolean(me);
+        if (!me) {
+            nameInput.value = '';
+            nameDirty = false;
+            nameMessage.textContent = '';
+            return;
+        }
+        const rank = document.getElementById('leaderboard-my-rank');
+        rank.textContent = me.rank === null ? 'Not ranked yet' : `#${numeric(me.rank)}`;
+        if (me.rank === null) rank.removeAttribute('translate');
+        else rank.setAttribute('translate', 'no');
+        document.getElementById('leaderboard-my-points').textContent = numeric(me.lifetimePoints);
+        document.getElementById('leaderboard-my-balance').textContent = numeric(me.points);
+        document.getElementById('leaderboard-unranked').hidden = me.rank !== null;
+        if (!nameDirty) nameInput.value = me.hasDisplayName ? me.displayName : '';
+    }
 
     function renderLeaders(leaders) {
         if (!leaders.length) {
@@ -20,13 +45,16 @@
     }
 
     async function load() {
+        if (loading || saving) return;
+        loading = true;
         refresh.disabled = true;
+        saveName.disabled = true;
         results.setAttribute('aria-busy', 'true');
         error.hidden = true;
         try {
             const data = await api('/api/kiosk/leaderboard');
             renderLeaders(data.leaders);
-            document.getElementById('leaderboard-signin').hidden = Boolean(data.me);
+            renderPersonal(data.me);
             announce('Leaderboard updated.');
         } catch (err) {
             error.textContent = err.message;
@@ -36,8 +64,39 @@
         } finally {
             results.setAttribute('aria-busy', 'false');
             refresh.disabled = false;
+            saveName.disabled = false;
+            loading = false;
         }
     }
+    nameInput.addEventListener('input', () => { nameDirty = true; nameMessage.textContent = ''; });
+    nameForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (saving || loading) return;
+        saving = true;
+        nameInput.disabled = true;
+        saveName.disabled = true;
+        refresh.disabled = true;
+        nameMessage.textContent = '';
+        let saved = false;
+        try {
+            const result = await send('/api/kiosk/leaderboard/profile', 'PATCH', { displayName: nameInput.value });
+            nameInput.value = result.displayName;
+            nameDirty = false;
+            nameMessage.setAttribute('role', 'status');
+            nameMessage.textContent = 'Display name saved.';
+            announce('Display name saved.');
+            saved = true;
+        } catch (err) {
+            nameMessage.setAttribute('role', 'alert');
+            nameMessage.textContent = err.message;
+        } finally {
+            saving = false;
+            nameInput.disabled = false;
+            saveName.disabled = false;
+            refresh.disabled = false;
+        }
+        if (saved) await load();
+    });
     refresh.addEventListener('click', load);
     load();
 })();
