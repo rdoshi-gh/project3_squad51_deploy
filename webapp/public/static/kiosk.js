@@ -45,7 +45,7 @@
         Object.entries(attrs).forEach(([key, value]) => {
             if (key.startsWith('on') && typeof value === 'function') node.addEventListener(key.slice(2), value);
             else if (key === 'class') node.className = value;
-            else if (key === 'value' || key === 'checked' || key === 'disabled') node[key] = value;
+            else if (key === 'value' || key === 'checked' || key === 'disabled' || key === 'selected') node[key] = value;
             else if (value !== undefined && value !== null) node.setAttribute(key, value);
         });
         children.flat().filter(child => child !== null && child !== undefined).forEach(child => node.append(child instanceof Node ? child : document.createTextNode(String(child))));
