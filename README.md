@@ -123,6 +123,16 @@ purchase adds its earned points to both counters inside the order transaction;
 redemptions reduce only the redeemable balance. Failed orders roll back both.
 The migration can be run again without resetting tracked Lifetime Points.
 
+**Leaderboard API.** Run `database/add_leaderboard_profiles.sql` after the
+Lifetime Points migration. `GET /api/kiosk/leaderboard` returns the Top 10
+customers with positive Lifetime Points. Equal scores share a rank (1, 1, 3);
+customer ID orders equal scores consistently at the ten-customer cutoff.
+Signed-in customers also receive their own rank, even outside the Top 10.
+Customers with zero Lifetime Points are unranked. Google email addresses are
+never returned. Names default to `Boba fan #<id>` until customers choose a public
+display name through `PATCH /api/kiosk/leaderboard/profile`, authenticated with
+the existing Google customer session.
+
 **Redeeming points.** At checkout, a signed-in customer can apply one reward
 from the catalog in `webapp/lib/rewards.js`: 25 points for $2 off, 50 points
 for $5 off, or 100 points for $12 off. The server validates the reward ID, rejects
