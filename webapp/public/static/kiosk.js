@@ -45,7 +45,7 @@
         Object.entries(attrs).forEach(([key, value]) => {
             if (key.startsWith('on') && typeof value === 'function') node.addEventListener(key.slice(2), value);
             else if (key === 'class') node.className = value;
-            else if (key === 'value' || key === 'checked' || key === 'disabled') node[key] = value;
+            else if (key === 'value' || key === 'checked' || key === 'disabled' || key === 'selected') node[key] = value;
             else if (value !== undefined && value !== null) node.setAttribute(key, value);
         });
         children.flat().filter(child => child !== null && child !== undefined).forEach(child => node.append(child instanceof Node ? child : document.createTextNode(String(child))));
@@ -54,6 +54,17 @@
     const button = (label, action, primary = false) => make('button', { type: 'button', class: primary ? 'kiosk-primary' : 'kiosk-secondary', onclick: action }, label);
     const SIZE_FACTORS = Object.freeze({ Small: 0.8, Regular: 1, Large: 1.25 });
     let menu = [], cart = [], activeCategory = 'All drinks', busy = false, customerName = '';
+    // Rewards: catalog and balance come from the server; only signed-in customers can redeem.
+    let rewards = { signedIn: false, points: 0, rewards: [] }, selectedRewardId = null;
+    const pluralPoints = count => `${count} ${count === 1 ? 'point' : 'points'}`;
+    const rewardUsable = (reward, subtotalCents) => rewards.signedIn && rewards.points >= reward.points && Math.round(reward.discount * 100) <= subtotalCents;
+    const selectedReward = () => {
+        const reward = rewards.rewards.find(row => row.id === selectedRewardId);
+        if (reward && rewardUsable(reward, cartCents())) return reward;
+        selectedRewardId = null;
+        return null;
+    };
+    const discountCents = () => { const reward = selectedReward(); return reward ? Math.round(reward.discount * 100) : 0; };
     const findItem = id => menu.find(item => Number(item.menu_item_id) === Number(id));
     const isTopping = item => String(item.category).toLowerCase() === 'topping';
     const drinks = () => menu.filter(item => !isTopping(item));
@@ -168,30 +179,56 @@
                 );
                 return make('div', { class: 'kiosk-cart-line' }, details, make('strong', {}, money(lineCents(line) * line.quantity / 100)));
             }) : [make('p', { class: 'kiosk-empty' }, 'Your order is empty. Add a drink to continue.') ]));
-            total.textContent = money(cartCents() / 100);
+            renderRewards();
+            const off = discountCents();
+            subtotal.textContent = money(cartCents() / 100);
+            discount.textContent = `−${money(off / 100)}`;
+            subtotalRow.hidden = discountRow.hidden = !off;
+            total.textContent = money((cartCents() - off) / 100);
             place.disabled = !cart.length || busy;
         };
-        const total = make('strong', {}, money(cartCents() / 100));
+        const subtotal = make('strong', {}, '');
+        const discount = make('strong', {}, '');
+        const discountRow = make('div', { class: 'kiosk-subtotal-row kiosk-discount-row' }, make('span', {}, 'Reward'), discount);
+        const subtotalRow = make('div', { class: 'kiosk-subtotal-row' }, make('span', {}, 'Subtotal'), subtotal);
+        const rewardsHost = make('div');
+        const renderRewards = () => {
+            if (!rewards.signedIn || !rewards.rewards.length) { rewardsHost.replaceChildren(); return; }
+            const subtotalCents = cartCents();
+            const active = selectedReward();
+            const options = rewards.rewards.map(reward => {
+                const usable = rewardUsable(reward, subtotalCents);
+                const hint = rewards.points < reward.points ? `Need ${reward.points - rewards.points} more` : !usable ? 'Order total too low' : pluralPoints(reward.points);
+                return make('button', { type: 'button', class: 'kiosk-reward-option', 'aria-pressed': String(active?.id === reward.id), disabled: !usable || busy,
+                    onclick: () => { selectedRewardId = active?.id === reward.id ? null : reward.id; renderLines(); announce(selectedRewardId ? `${reward.label} applied.` : 'Reward removed.'); } },
+                make('strong', {}, reward.label), make('small', {}, hint));
+            });
+            rewardsHost.replaceChildren(make('fieldset', { class: 'kiosk-rewards-picker' },
+                make('legend', {}, `Redeem points · you have ${pluralPoints(rewards.points)}`),
+                make('div', { class: 'kiosk-reward-options' }, options)));
+        };
         const error = make('p', { class: 'kiosk-message', role: 'alert' });
         const place = make('button', { type: 'button', class: 'kiosk-primary', onclick: () => placeOrder(error, place), disabled: busy }, 'Place order');
-        const content = make('div', { class: 'kiosk-form-stack' }, list, error, make('div', { class: 'kiosk-grand-total' }, make('span', {}, 'Order total'), total), make('div', { class: 'kiosk-dialog-actions' }, button('Keep browsing', () => dialog.close()), place));
+        const total = make('strong', {}, '');
+        const content = make('div', { class: 'kiosk-form-stack' }, list, rewardsHost, error, subtotalRow, discountRow, make('div', { class: 'kiosk-grand-total' }, make('span', {}, 'Order total'), total), make('div', { class: 'kiosk-dialog-actions' }, button('Keep browsing', () => dialog.close()), place));
         renderLines(); showDialog('One last look', content);
     }
     async function placeOrder(error, submit) {
         if (busy) return;
         busy = true; submit.disabled = true; drawCartSummary(); error.textContent = '';
         try {
-            const response = await fetch('/api/kiosk/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerName, lines: cart }) });
+            const response = await fetch('/api/kiosk/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customerName, lines: cart, ...(selectedReward() ? { rewardId: selectedRewardId } : {}) }) });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'We could not place your order. Please try again.');
-            cart = []; drawCartSummary();
+            cart = []; selectedRewardId = null; drawCartSummary();
             const rewarded = result.points !== undefined;
             // A signed-in customer is signed out after checkout, so reload to show the signed-out kiosk.
             const restart = rewarded ? () => location.assign('/kiosk') : () => { dialog.close(); drawCartSummary(); document.getElementById('kiosk-menu').scrollIntoView({ behavior: 'smooth' }); };
-            const pointsNote = rewarded ? `You earned ${result.pointsEarned} ${result.pointsEarned === 1 ? 'point' : 'points'} and now have ${result.points}.` : '';
+            const redeemedNote = result.pointsRedeemed ? `You redeemed ${pluralPoints(result.pointsRedeemed)} for ${money(result.discount)} off. ` : '';
+            const pointsNote = rewarded ? `${redeemedNote}You earned ${pluralPoints(result.pointsEarned)} and now have ${result.points}.` : '';
             const confirmation = make('div', { class: 'kiosk-form-stack' }, make('p', {}, 'Thank you! Your order has been sent to our team.'), ...(rewarded ? [make('p', { class: 'kiosk-points-earned' }, pointsNote)] : []), make('div', { class: 'kiosk-grand-total' }, make('span', {}, `Order #${result.order_id}`), make('strong', {}, money(result.total))), make('div', { class: 'kiosk-dialog-actions' }, button('Start a new order', restart, true)));
             showDialog('You made a good choice!', confirmation); announce(`Order ${result.order_id} placed successfully. ${pointsNote}`);
-        } catch (err) { error.textContent = err.message; }
+        } catch (err) { error.textContent = err.message; loadRewards(); }
         finally { busy = false; drawCartSummary(); }
     }
     document.getElementById('kiosk-name-form').addEventListener('submit', event => {
@@ -215,5 +252,11 @@
             if (!drinks().length) grid.replaceChildren(make('p', { class: 'kiosk-empty' }, 'Our menu is taking a little break. Please check back soon.'));
         } catch (error) { message.textContent = error.message; grid.replaceChildren(button('Try again', loadMenu)); }
     }
-    drawCartSummary(); loadMenu();
+    async function loadRewards() {
+        try {
+            const response = await fetch('/api/kiosk/rewards');
+            if (response.ok) rewards = await response.json();
+        } catch { /* Rewards are optional; ordering still works without them. */ }
+    }
+    drawCartSummary(); loadMenu(); loadRewards();
 })();
