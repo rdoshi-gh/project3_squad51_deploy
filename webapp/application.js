@@ -7,6 +7,7 @@ const { googleAuth, readCustomer, signOutCustomer } = require('./lib/google-auth
 const { InputError, id, text, number, dateRange } = require('./lib/validation');
 const { getReport, getRange, LAST_WEEK } = require('./lib/reports');
 const { saveOrder } = require('./lib/orders');
+const { REWARDS } = require('./lib/rewards');
 const { createTranslator } = require('./lib/translation');
 const { createWeather } = require('./lib/weather');
 const {
@@ -98,10 +99,22 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     });
     app.get('/api/menu', requireSession(), route(async (req, res) => res.json(await db.query('SELECT * FROM menu_items ORDER BY category, name, menu_item_id'))));
     app.get('/api/kiosk/menu', route(async (req, res) => res.json(await db.query('SELECT menu_item_id, name, category, price FROM menu_items ORDER BY category, name, menu_item_id'))));
+    // Rewards catalog plus the signed-in customer's current balance (fresh from the database).
+    app.get('/api/kiosk/rewards', route(async (req, res) => {
+        const signedIn = readCustomer(session, req);
+        let points = null;
+        if (signedIn) {
+            const [row] = await db.query('SELECT points FROM customers WHERE customer_id = $1', [signedIn.customerId]);
+            if (row) points = Number(row.points);
+        }
+        res.json({ signedIn: points !== null, points, rewards: REWARDS.map(({ id, points: cost, discountCents, label }) =>
+            ({ id, points: cost, discount: discountCents / 100, label })) });
+    }));
     app.post('/api/kiosk/orders', route(async (req, res) => {
         const customerName = req.body.customerName === undefined ? '' : text(req.body.customerName, 'Customer name', 40);
         const customer = readCustomer(session, req);
-        const order = await saveOrder(db, 6, req.body.lines, customerName, { customerId: customer && customer.customerId });
+        const rewardId = req.body.rewardId === undefined || req.body.rewardId === null ? undefined : text(req.body.rewardId, 'Reward', 20);
+        const order = await saveOrder(db, 6, req.body.lines, customerName, { customerId: customer && customer.customerId, rewardId });
         // Sign the customer out after checkout so the next person at the kiosk starts fresh.
         if (customer) signOutCustomer(res);
         res.status(201).json(order);

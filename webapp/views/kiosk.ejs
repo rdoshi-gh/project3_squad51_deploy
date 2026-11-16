@@ -34,7 +34,7 @@
                     <button class="kiosk-primary kiosk-start-button" type="submit"><span data-i18n="welcome.startOrder">Start my order</span> <span aria-hidden="true">→</span></button>
                 </form>
                 <% if (customer) { %>
-                <p class="kiosk-welcome-note">You're signed in. This order will earn rewards points.</p>
+                <p class="kiosk-welcome-note">You're signed in. This order earns points, and you can redeem them at checkout.</p>
                 <% } else if (googleEnabled) { %>
                 <a class="kiosk-rewards-signin" href="/auth/google/customer">Sign in with Google to earn points</a>
                 <p class="kiosk-welcome-note">Optional. No account needed. Just good drinks.</p>

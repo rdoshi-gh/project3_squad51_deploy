@@ -334,3 +334,12 @@ legend { font-weight: 600; padding: 0 8px; }
 .kiosk-rewards-signin:hover { background: #f2f2f2; }
 .kiosk-signin-error { max-width: 980px; margin: 16px auto 0; padding: 12px 16px; border-radius: 9px; background: #fde8e8; color: #760909; font-weight: 600; }
 .kiosk-points-earned { font-weight: 700; color: var(--k-green); }
+.kiosk-dialog .kiosk-reward-options { display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: 8px; margin-top: 8px; }
+.kiosk-dialog .kiosk-reward-option { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-height: 52px; padding: 10px 12px; border: 1px solid #e1e7df; border-radius: 9px; background: #f8faf7; color: #2b4031; text-align: left; }
+.kiosk-dialog .kiosk-reward-option small { color: #66756a; font-size: 12px; font-weight: 600; }
+.kiosk-dialog .kiosk-reward-option:hover:not(:disabled) { border-color: #9bb59e; background: #f0f5ef; }
+.kiosk-dialog .kiosk-reward-option[aria-pressed="true"] { border-color: var(--k-green); background: var(--k-green); color: white; }
+.kiosk-dialog .kiosk-reward-option[aria-pressed="true"] small { color: #e6f0e7; }
+.kiosk-dialog .kiosk-reward-option:disabled { opacity: .55; cursor: not-allowed; }
+.kiosk-dialog .kiosk-subtotal-row { display: flex; justify-content: space-between; color: #46564a; font-size: 15px; }
+.kiosk-dialog .kiosk-discount-row { color: var(--k-green); font-weight: 700; }

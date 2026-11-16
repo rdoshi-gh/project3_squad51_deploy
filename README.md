@@ -115,6 +115,16 @@ creates a `customers` row. Each kiosk order earns 1 point per whole dollar,
 credited in the same transaction as the order. Customer sessions last 15 minutes
 and end after checkout, since the kiosk is shared.
 
+**Redeeming points.** At checkout, a signed-in customer can apply one reward
+from the catalog in `webapp/lib/rewards.js`: 25 points for $2 off, 50 points
+for $5 off, or 100 points for $12 off. The server validates the reward ID, rejects
+rewards larger than the order subtotal, and spends and earns points in one guarded
+`UPDATE ... WHERE points >= cost` inside the order transaction, so a balance can't
+go negative or be spent twice. Points are earned on the amount actually paid, and
+`customer_orders.total_price` stores that discounted total so revenue reports
+reflect redemptions. `GET /api/kiosk/rewards` returns the catalog and the
+signed-in customer's balance. Guests cannot redeem.
+
 Setup:
 
 1. Run `database/add_customers.sql` once.
