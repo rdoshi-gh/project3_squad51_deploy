@@ -57,7 +57,7 @@ async function openPage(t, view, { hash = '', language = 'es', role = 'manager' 
     } };
 }
 
-for (const view of ['index', 'login', 'cashier', 'manager', 'kitchen', 'kiosk', 'error', 'user']) {
+for (const view of ['index', 'login', 'cashier', 'manager', 'kitchen', 'kiosk', 'leaderboard', 'error', 'user']) {
     test(`${view} renders exactly one accessibility menu and shared translation feedback`, async () => {
         const html = await ejs.renderFile(path.join(__dirname, `../views/${view}.ejs`), locals);
         const dom = new JSDOM(html);

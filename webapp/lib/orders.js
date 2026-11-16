@@ -92,14 +92,19 @@ async function saveOrder(db, employeeId, raw, customerName = '', { customerId, r
             }
         }
         // Spend and earn points in one guarded update before any order rows are written.
+        // Lifetime Points count earnings only; redeeming never lowers the leaderboard score.
         // The points >= spent check makes concurrent redemptions of the same balance fail safely.
         const pointsRedeemed = reward ? reward.points : 0;
         const pointsEarned = pointsFor(totalCents / 100);
-        let points;
+        let points, lifetimePoints;
         if (customerId) {
-            const updated = await client.query(`UPDATE customers SET points = points - $1 + $2
-                WHERE customer_id = $3 AND points >= $1 RETURNING points`, [pointsRedeemed, pointsEarned, customerId]);
-            if (updated.rows.length) points = Number(updated.rows[0].points);
+            const updated = await client.query(`UPDATE customers SET points = points - $1 + $2,
+                lifetime_points = lifetime_points + $2
+                WHERE customer_id = $3 AND points >= $1 RETURNING points, lifetime_points`, [pointsRedeemed, pointsEarned, customerId]);
+            if (updated.rows.length) {
+                points = Number(updated.rows[0].points);
+                lifetimePoints = Number(updated.rows[0].lifetime_points);
+            }
             else if (reward) throw new InputError(`You need ${reward.points} points to redeem ${reward.label}.`, 409);
         }
         // total_price is what the customer paid, so revenue reports reflect redeemed discounts.
@@ -128,7 +133,7 @@ async function saveOrder(db, employeeId, raw, customerName = '', { customerId, r
         // Customer name is intentionally request/session-level only in Sprint 2.
         const saved = { ...result.rows[0], total: totalCents / 100, customerName: customerName || undefined };
         if (reward) Object.assign(saved, { subtotal: order.totalCents / 100, discount: discountCents / 100, reward: reward.label });
-        if (points !== undefined) Object.assign(saved, { pointsRedeemed, pointsEarned, points });
+        if (points !== undefined) Object.assign(saved, { pointsRedeemed, pointsEarned, points, lifetimePoints });
         return saved;
     });
 }
