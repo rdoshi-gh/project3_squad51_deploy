@@ -85,6 +85,18 @@ test('translation cache expires and per-client requests are bounded', async () =
     assert.equal(calls, 2);
 });
 
+test('deployment diagnostics identify connection failures without leaking email, URLs, or text', async () => {
+    const logs = [];
+    const handler = createTranslator({ contactEmail: 'private@example.com', logger: { warn: (...args) => logs.push(args.join(' ')) },
+        fetchImpl: async () => { throw new TypeError('https://provider.example/?de=private@example.com&q=PrivateText', { cause: { code: 'ENETUNREACH' } }); } });
+    assert.deepEqual((await request(handler, ['PrivateText'])).translations, [null]);
+    assert.equal(logs.length, 1);
+    assert.match(logs[0], /ENETUNREACH/);
+    assert.match(logs[0], /"stage":"connection"/);
+    assert.match(logs[0], /"emailConfigured":true/);
+    assert.doesNotMatch(logs[0], /private@example|https:|PrivateText/);
+});
+
 async function waitFor(check) {
     for (let i = 0; i < 150; i++) {
         if (check()) return;

@@ -3,7 +3,7 @@ const { InputError } = require('./validation');
 // MyMemory's GET API needs no key. An optional contact email increases its
 // documented free allowance. Each segment is limited to 500
 // UTF-8 bytes. Cache by source text, so new/edited menu names need no dictionary.
-function createTranslator({ fetchImpl = fetch, now = Date.now, contactEmail = '' } = {}) {
+function createTranslator({ fetchImpl = fetch, now = Date.now, contactEmail = '', logger = console } = {}) {
     const cache = new Map(), pending = new Map(), clients = new Map();
     const ttl = 24 * 60 * 60 * 1000;
     let active = 0;
@@ -17,21 +17,34 @@ function createTranslator({ fetchImpl = fetch, now = Date.now, contactEmail = ''
             // Bound concurrency across requests, not just within one batch.
             if (active >= 4) await new Promise(resolve => waiting.push(resolve));
             else active++;
+            const diagnostic = { stage: 'connection' };
             try {
                 const url = new URL('https://api.mymemory.translated.net/get');
                 url.search = new URLSearchParams({ q: text, langpair: 'en|es' }).toString();
                 if (contactEmail) url.searchParams.set('de', contactEmail);
                 const response = await fetchImpl(url.toString(), { signal: AbortSignal.timeout(12000) });
+                diagnostic.stage = 'http';
+                diagnostic.httpStatus = response.status || null;
                 if (!response.ok) throw new Error('Translation service unavailable.');
+                diagnostic.stage = 'json';
                 const data = await response.json();
+                diagnostic.stage = data.quotaFinished ? 'quota' : 'provider';
+                diagnostic.providerStatus = Number(data.responseStatus) || null;
                 if (Number(data.responseStatus) !== 200 || data.quotaFinished) throw new Error('Translation service limit reached.');
+                diagnostic.stage = 'translation';
                 const value = data.responseData?.translatedText;
                 if (typeof value !== 'string' || !value.trim() || value.length > 4000) throw new Error('Invalid translation response.');
                 if (cache.size >= 2000) cache.delete(cache.keys().next().value);
                 cache.set(text, { value, expires: now() + ttl });
                 return value;
-            } catch {
-                throw new InputError('Spanish translation is temporarily unavailable or its free daily limit has been reached. Please try again later.', 503);
+            } catch (cause) {
+                // Only structured status/code fields are retained. Error messages
+                // can contain the request URL, contact email, or translated text.
+                const code = cause?.cause?.code || cause?.code || cause?.name;
+                if (typeof code === 'string' && /^[A-Za-z0-9_]{1,64}$/.test(code)) diagnostic.code = code;
+                const error = new InputError('Spanish translation is temporarily unavailable or its free daily limit has been reached. Please try again later.', 503);
+                error.translationDiagnostic = diagnostic;
+                throw error;
             } finally {
                 if (waiting.length) waiting.shift()();
                 else active--;
@@ -60,6 +73,13 @@ function createTranslator({ fetchImpl = fetch, now = Date.now, contactEmail = ''
         // Return successful segments even if another segment fails. The browser
         // can keep and reuse them rather than consuming the free quota again.
         const results = await Promise.allSettled(texts.map(translate));
+        const failures = results.filter(result => result.status === 'rejected');
+        if (failures.length) {
+            const reasons = [...new Set(failures.map(result => JSON.stringify(result.reason.translationDiagnostic || { stage: 'unknown' })))].map(value => JSON.parse(value));
+            logger.warn('Translation provider failure:', JSON.stringify({
+                emailConfigured: Boolean(contactEmail.trim()), failedSegments: failures.length, reasons
+            }));
+        }
         res.json({ translations: results.map(result => result.status === 'fulfilled' ? result.value : null) });
     };
 }
