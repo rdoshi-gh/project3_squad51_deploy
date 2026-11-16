@@ -1,7 +1,9 @@
 # Popping POS (Team 51)
 
 Project 2's Java Swing workflows ported to the repository's Express/EJS web app,
-using the existing PostgreSQL database. No schema migration or reseeding is required.
+using the existing PostgreSQL database. The shared team database already includes
+the employee scheduler table. Local development reuses that database; do not reseed
+it. A separate database needs the schema additions for the features being used.
 
 ## Team development map
 
@@ -47,14 +49,17 @@ Other navigation stays within the selected employee workspace.
 ## Included workflows
 
 - Cashier: category/search menu, quantities, sweetness, ice, toppings, line edits,
-  removal, reset, undo/redo, review, order completion, and employee profile.
+  removal, reset, undo/redo, review, order completion, employee profile, and a
+  read-only published schedule opened from the top-bar Schedule button.
 - Checkout: server-side menu prices, topping quantities, recipe-based stock
   deductions, stock availability checks, and atomic order/inventory writes.
 - Manager: dashboard, date-filtered order history and details, ordering trends,
-  inventory CRUD, physical counts, and reorder-level review.
+  inventory CRUD, physical counts, reorder-level review, and a Schedule section
+  for assigning and publishing employee shifts.
 - Restocking: create supply reorder requests and view their history. Requests
   do not increase stock; physical counts update inventory after receipt.
-- Employees: add, edit, and delete records when order history allows it.
+- Employees: add, edit, and delete records when order history and saved shifts
+  allow it.
 - Menu: add, edit, and delete items, change prices/categories, and manage recipes.
 - Reports: Daily Sales Summary, Top Selling Items, Inventory Status, X Report
   (hourly sales), Sales Report, Restock Report, and Product Usage charts.
@@ -68,6 +73,27 @@ Other navigation stays within the selected employee workspace.
 
 The original `/user` teammates example remains available for deployment parity;
 it requires the original `teammates` table and is not part of the POS workflow.
+
+## Employee scheduler
+
+Managers open **Schedule** in the sidebar. The calendar shows employees as rows
+and Monday–Sunday as columns. Click **+ Add shift** to assign an employee, date,
+start/end times, and role. Select a shift to edit or delete it. Weekly employee
+hours and daily staffing totals update with the draft.
+
+Changes save as drafts. **Publish week** replaces that week's cashier schedule;
+cashiers continue seeing the last published shifts while managers make edits.
+Publishing an empty draft clears the published week. **Copy previous week** copies
+the previous week's draft shifts into an empty draft week without overwriting
+existing draft shifts. Cashiers can view published team shifts with the
+**Schedule** button in their top bar, but cannot edit or publish them.
+
+Scheduling uses one table, `employee_shifts`, linked to `employees`. Draft and
+published copies share that table. It is already created in the shared team
+database; teammates connecting to that database need no additional setup.
+Times are store-local Central time. Shifts must finish later on the same day;
+split overnight shifts across days. Overlapping shifts for the same employee
+are rejected; consecutive shifts are allowed. Hours do not deduct breaks.
 
 ## Database behavior and limits inherited from Project 2
 
@@ -101,11 +127,15 @@ order history before retrying, since the existing schema has no retry token.
 
 ## Authentication
 
-**Employees** (manager, cashier, kitchen) keep Project 2's employee-selection
+**Employees** (manager, cashier) keep Project 2's employee-selection
 sign-in. It issues a signed, HTTP-only, one-hour cookie, enforces
 cashier/manager routes, and rejects cross-origin browser writes. Selecting an
 employee does not verify identity. A production deployment requires
 `SESSION_SECRET`; without it, employee sign-in is unavailable.
+
+**Kitchen display** opens directly at `/kitchen` without sign-in. Viewing the
+queue and marking orders ready are public actions. Old `/kitchen/login` links
+redirect to the display. Opening it does not change an existing employee session.
 
 **Customers** can optionally sign in on the kiosk with Google (OAuth 2.0
 authorization code flow, `webapp/lib/google-auth.js`) to earn loyalty points;
@@ -243,7 +273,10 @@ vercel project pause project3-squad51-deploy --scope rdoshi-ghs-projects
 
 The public Customer Kiosk is available at `/kiosk` and is linked from the Portal Hub. It reads menu items from `/api/kiosk/menu`, supports drink search and category filters, sweetness/ice/topping customizations, cart editing, and public order submission. Kiosk orders use the existing `customer_orders` and `order_items` tables and decrement inventory through the shared order service.
 
-Before enabling kiosk checkout against the existing Project 2 database, run `database/project2/sql_files/allow_kiosk_orders.sql` once. It allows `employee_id` to be `NULL` for customer-submitted orders; manager reports already use a left join when showing employee names. Do not run this migration against a different database without reviewing it.
+Kiosk checkout currently records orders under employee ID `6`; that employee
+record must exist in the connected database. The legacy
+`database/project2/sql_files/allow_kiosk_orders.sql` script allows a null employee
+ID, but the current kiosk route does not submit null employee IDs.
 
 ## Accessibility controls and Spanish translation
 
@@ -293,6 +326,13 @@ always retains both language names so users can return to English. Successful
 segments remain cached when retrying. A production service with higher traffic
 may need a translation provider with a larger quota.
 
+For deployment troubleshooting, retry Spanish on the live app and inspect Render's
+Logs for `Translation provider failure:`. The entry records whether a contact
+email is configured, how many segments failed, and the failure stage plus available
+HTTP/provider status or connection error code. It excludes the email value,
+source text, and request URLs. These diagnostics identify failures; they do not
+resolve provider limits or connection problems automatically.
+
 On a Windows network that uses a locally trusted certificate authority, Node may
 report `UNABLE_TO_VERIFY_LEAF_SIGNATURE` for outbound HTTPS even though the browser
 works. With Node 22.19+ or Node 24.6+, use the system trust store (certificate
@@ -311,10 +351,11 @@ for her mobile, bilingual, and plain-language needs separately.
 
 ## Remaining Project 3 work
 
-This is the Project 2 migration, not a complete Project 3 submission. Customer
-Kiosk, Kitchen Display (for this five-person team), external authentication,
-translation, weather, personal assistant, accessibility-persona validation,
-user studies, and the team's approved beyond features remain separate work.
+The app includes the customer kiosk, kitchen display, Google customer sign-in,
+Spanish translation, weather, loyalty/leaderboard features, and employee scheduling.
+Translation on Render is still being diagnosed. Personal assistant work,
+accessibility-persona validation, user studies, and assignment acceptance checks
+remain to be completed or confirmed by the team.
 The assignment also requires version control in the class GitHub organization;
 coordinate how this deployment repository mirrors or connects to that repository.
 
