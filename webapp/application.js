@@ -8,6 +8,7 @@ const { InputError, id, text, number, dateRange } = require('./lib/validation');
 const { getReport, getRange, LAST_WEEK } = require('./lib/reports');
 const { saveOrder } = require('./lib/orders');
 const { REWARDS } = require('./lib/rewards');
+const { getLeaderboard, updateDisplayName } = require('./lib/leaderboard');
 const { createTranslator } = require('./lib/translation');
 const { createWeather } = require('./lib/weather');
 const {
@@ -51,6 +52,7 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     }
     const google = googleAuth({ app, db, session, fetchImpl, env });
     app.get('/', (req, res) => res.render('index'));
+    app.get('/leaderboard', (req, res) => res.render('leaderboard', { googleEnabled: google.enabled }));
     // The customer kiosk is public; employee workspaces still require sign-in.
     app.get('/kiosk', route(async (req, res) => {
         const signedIn = readCustomer(session, req);
@@ -109,6 +111,15 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         }
         res.json({ signedIn: points !== null, points, rewards: REWARDS.map(({ id, points: cost, discountCents, label }) =>
             ({ id, points: cost, discount: discountCents / 100, label })) });
+    }));
+    app.get('/api/kiosk/leaderboard', route(async (req, res) => {
+        const customer = readCustomer(session, req);
+        res.json(await getLeaderboard(db, customer && customer.customerId));
+    }));
+    app.patch('/api/kiosk/leaderboard/profile', route(async (req, res) => {
+        const customer = readCustomer(session, req);
+        if (!customer) throw new InputError('Sign in with Google to choose a display name.', 401);
+        res.json(await updateDisplayName(db, customer.customerId, req.body.displayName));
     }));
     app.post('/api/kiosk/orders', route(async (req, res) => {
         const customerName = req.body.customerName === undefined ? '' : text(req.body.customerName, 'Customer name', 40);

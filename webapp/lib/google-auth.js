@@ -39,7 +39,8 @@ function googleAuth({ app, db, session, fetchImpl = fetch, env = process.env }) 
         if (!enabled) return fail(res, 'not_configured');
         const state = crypto.randomBytes(24).toString('base64url');
         const nonce = crypto.randomBytes(24).toString('base64url');
-        session.writeSigned(res, STATE_COOKIE, { state, nonce }, STATE_MS);
+        const returnTo = req.query.returnTo === '/leaderboard' ? '/leaderboard' : '/kiosk';
+        session.writeSigned(res, STATE_COOKIE, { state, nonce, returnTo }, STATE_MS);
         const params = new URLSearchParams({
             client_id: clientId,
             redirect_uri: redirectUri(req),
@@ -89,7 +90,7 @@ function googleAuth({ app, db, session, fetchImpl = fetch, env = process.env }) 
                 ON CONFLICT (LOWER(email)) DO UPDATE SET email = customers.email RETURNING customer_id`, [claims.email]);
             session.writeSigned(res, CUSTOMER_COOKIE, { customerId: customer.customer_id,
                 firstName: String(claims.given_name || '').slice(0, 40) }, CUSTOMER_MS);
-            res.redirect('/kiosk');
+            res.redirect(pending.returnTo === '/leaderboard' ? '/leaderboard' : '/kiosk');
         } catch (error) { next(error); }
     });
 

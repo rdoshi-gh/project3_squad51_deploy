@@ -23,8 +23,8 @@ async function start(t, { claims = {}, appEnv = env } = {}) {
     t.after(() => new Promise(resolve => server.close(resolve)));
     await new Promise(resolve => server.once('listening', resolve));
     const base = `http://127.0.0.1:${server.address().port}`;
-    async function signIn() {
-        const begin = await fetch(`${base}/auth/google/customer`, { redirect: 'manual' });
+    async function signIn(returnTo = '') {
+        const begin = await fetch(`${base}/auth/google/customer${returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : ''}`, { redirect: 'manual' });
         assert.equal(begin.status, 302);
         const google = new URL(begin.headers.get('location'));
         assert.equal(google.origin + google.pathname, 'https://accounts.google.com/o/oauth2/v2/auth');
@@ -64,6 +64,12 @@ test('a customer Google sign-in enrolls them and shows their points on the kiosk
 test('a token for another client is rejected', async t => {
     const { signIn } = await start(t, { claims: { aud: 'someone-else' } });
     assert.equal((await signIn()).headers.get('location'), '/kiosk?signin_error=failed');
+});
+
+test('leaderboard Google sign-in returns to the leaderboard and rejects external return URLs', async t => {
+    const { signIn } = await start(t);
+    assert.equal((await signIn('/leaderboard')).headers.get('location'), '/leaderboard');
+    assert.equal((await signIn('https://example.invalid')).headers.get('location'), '/kiosk');
 });
 
 test('an unverified Google email is rejected', async t => {

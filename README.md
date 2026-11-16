@@ -115,6 +115,42 @@ creates a `customers` row. Each kiosk order earns 1 point per whole dollar,
 credited in the same transaction as the order. Customer sessions last 15 minutes
 and end after checkout, since the kiosk is shared.
 
+**Lifetime Points.** Run `database/add_lifetime_points.sql` after
+`database/add_customers.sql` before deploying this branch. This adds a separate
+earned-points counter without changing redeemable balances. Existing accounts
+start at zero because previous redemption totals were not stored. Each signed-in
+purchase adds its earned points to both counters inside the order transaction;
+redemptions reduce only the redeemable balance. Failed orders roll back both.
+The migration can be run again without resetting tracked Lifetime Points.
+
+**Leaderboard API.** Run `database/add_leaderboard_profiles.sql` after the
+Lifetime Points migration. `GET /api/kiosk/leaderboard` returns the Top 10
+customers with positive Lifetime Points. Equal scores share a rank (1, 1, 3);
+customer ID orders equal scores consistently at the ten-customer cutoff.
+Signed-in customers also receive their own rank, even outside the Top 10.
+Customers with zero Lifetime Points are unranked. Google email addresses are
+never returned. Names default to `Boba fan #<id>` until customers choose a public
+display name through `PATCH /api/kiosk/leaderboard/profile`, authenticated with
+the existing Google customer session.
+
+The public `/leaderboard` page is linked from the kiosk and shares its styling,
+accessibility controls, and translation support. Google sign-in started from
+this page returns there after authentication. A signed-in customer can see their
+own rank, Lifetime Points, and separate redeemable balance, and can choose or
+change their public display name. Zero-point customers receive a clear unranked
+state. Refresh preserves unsaved name edits; a successful save refreshes the
+ranking.
+
+The kiosk and personal leaderboard panel also show progress toward the next
+reward using the redeemable balance and the server's existing reward catalog.
+Lifetime Points do not determine reward eligibility. Reaching the highest tier
+shows a completed indicator; checkout still validates the order subtotal.
+
+To preview sample leaderboard records without changing team data, run `node test/leaderboard-preview.js`
+from `webapp` and open `http://localhost:3002/leaderboard`. The optional
+`/preview/customer` shortcut uses a local test session; it exists only in this
+preview script and is never registered by the production server.
+
 **Redeeming points.** At checkout, a signed-in customer can apply one reward
 from the catalog in `webapp/lib/rewards.js`: 25 points for $2 off, 50 points
 for $5 off, or 100 points for $12 off. The server validates the reward ID, rejects

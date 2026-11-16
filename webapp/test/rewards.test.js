@@ -10,7 +10,7 @@ const menu = [
 ];
 
 // Fake transaction client. `balance` is the customer's current points; the guarded UPDATE mimics Postgres.
-function rewardsDb(balance) {
+function rewardsDb(balance, lifetimePoints = 0) {
     const calls = [];
     const client = { query: async (sql, values) => {
         calls.push({ sql, values });
@@ -21,7 +21,8 @@ function rewardsDb(balance) {
             const [spent, earned] = values;
             if (balance < spent) return { rows: [] };
             balance = balance - spent + earned;
-            return { rows: [{ points: balance }] };
+            lifetimePoints += earned;
+            return { rows: [{ points: balance, lifetime_points: lifetimePoints }] };
         }
         if (sql.includes('INSERT INTO customer_orders')) return { rows: [{ order_id: 10, order_timestamp: '2026-11-15T12:00:00' }] };
         return { rows: [] };
@@ -74,7 +75,40 @@ test('orders without a reward still earn points as before', async () => {
     assert.equal(result.pointsRedeemed, 0);
     assert.equal(result.pointsEarned, 10);
     assert.equal(result.points, 15);
+    assert.equal(result.lifetimePoints, 10);
     assert.equal(result.discount, undefined);
+});
+
+test('Lifetime Points retain earnings across multiple reward redemptions', async () => {
+    const db = rewardsDb(100, 150);
+    const first = await saveOrder(db, 6, [{ menuItemId: 1, quantity: 1 }], '', { customerId: 3, rewardId: 'save-5' });
+    assert.equal(first.points, 55);
+    assert.equal(first.lifetimePoints, 155);
+    const second = await saveOrder(db, 6, [{ menuItemId: 1, quantity: 1 }], '', { customerId: 3, rewardId: 'save-2' });
+    assert.equal(second.points, 38);
+    assert.equal(second.lifetimePoints, 163);
+});
+
+test('existing spendable balances are not counted as historical Lifetime Points', async () => {
+    const db = rewardsDb(500);
+    const result = await saveOrder(db, 6, [{ menuItemId: 1, quantity: 1 }], '', { customerId: 3 });
+    assert.equal(result.points, 510);
+    assert.equal(result.lifetimePoints, 10);
+});
+
+test('a rejected redemption does not add Lifetime Points', async () => {
+    const db = rewardsDb(10, 100);
+    await assert.rejects(saveOrder(db, 6, [{ menuItemId: 1, quantity: 1 }], '', { customerId: 3, rewardId: 'save-5' }), /need 50 points/);
+    const result = await saveOrder(db, 6, [{ menuItemId: 1, quantity: 1 }], '', { customerId: 3 });
+    assert.equal(result.lifetimePoints, 110);
+    assert.equal(result.points, 20);
+});
+
+test('guest orders do not earn Lifetime Points', async () => {
+    const db = rewardsDb(10);
+    const result = await saveOrder(db, 6, [{ menuItemId: 1, quantity: 1 }]);
+    assert.equal(result.lifetimePoints, undefined);
+    assert.equal(db.calls.some(call => call.sql.includes('UPDATE customers')), false);
 });
 
 test('the rewards API lists the catalog and rejects guest redemption', async t => {

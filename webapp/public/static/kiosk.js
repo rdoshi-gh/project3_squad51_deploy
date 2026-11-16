@@ -257,6 +257,11 @@
             const response = await fetch('/api/kiosk/rewards');
             if (response.ok) rewards = await response.json();
         } catch { /* Rewards are optional; ordering still works without them. */ }
+        document.querySelectorAll('[data-reward-progress]').forEach(host => {
+            const progress = rewards.signedIn ? window.POS?.rewardProgress(rewards.points, rewards.rewards) : null;
+            host.replaceChildren(...(progress ? [progress] : []));
+            host.hidden = !progress;
+        });
     }
     drawCartSummary(); loadMenu(); loadRewards();
 })();

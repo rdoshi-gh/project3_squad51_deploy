@@ -100,6 +100,25 @@ window.POS = (() => {
                         h('span', { class: 'chart-value' }, format(valueOf(point, item.key))))))))
                 : h('p', { class: 'empty' }, 'No data available for this chart.'));
     }
+    function rewardProgress(balance, catalog) {
+        const points = Number(balance);
+        const rewards = (Array.isArray(catalog) ? catalog : [])
+            .filter(reward => Number.isInteger(reward.points) && reward.points > 0)
+            .sort((a, b) => a.points - b.points);
+        if (!Number.isInteger(points) || points < 0 || !rewards.length) return null;
+        const next = rewards.find(reward => reward.points > points);
+        const available = rewards.filter(reward => reward.points <= points).at(-1);
+        const target = next || rewards.at(-1);
+        const remaining = next ? next.points - points : 0;
+        return h('section', { class: 'reward-progress', 'aria-label': 'Your rewards progress' },
+            h('h3', {}, next ? 'Your next reward' : 'All reward tiers unlocked'),
+            next ? h('p', {}, `${numeric(remaining)} more ${remaining === 1 ? 'point' : 'points'} until ${next.label}.`)
+                : h('p', {}, 'You have enough points for every reward tier.'),
+            h('progress', { max: target.points, value: Math.min(points, target.points),
+                'aria-label': `Progress toward ${target.label}: ${numeric(Math.min(points, target.points))} of ${numeric(target.points)} points` }),
+            available ? h('p', { class: 'reward-progress-available' }, `Points available for: ${available.label}.`) : null,
+            h('p', { class: 'reward-progress-note' }, 'Based on your redeemable balance. Rewards apply at checkout when your order total qualifies.'));
+    }
     function modal(title, content, footer = [], { showClose = true } = {}) {
         const dialog = document.getElementById('modal');
         document.getElementById('modal-body').replaceChildren(h('div', { class: 'dialog-header' }, h('h2', { id: 'modal-title' }, title), showClose ? button('Close', () => dialog.close()) : null), content,
@@ -127,5 +146,5 @@ window.POS = (() => {
         const result = await send('/api/logout', 'POST');
         location.replace(result.location || '/');
     }, 'Log Out'));
-    return { h, api, send, button, field, input, select, panel, table, metrics, chart, modal, confirm, announce, money, numeric, dateTime, presetDates };
+    return { h, api, send, button, field, input, select, panel, table, metrics, chart, rewardProgress, modal, confirm, announce, money, numeric, dateTime, presetDates };
 })();

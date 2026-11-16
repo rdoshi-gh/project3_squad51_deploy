@@ -145,7 +145,7 @@ test('customer kiosk is public and can submit orders without an employee session
     const base = `http://127.0.0.1:${server.address().port}`;
     const page = await fetch(`${base}/kiosk`);
     assert.equal(page.status, 200);
-    assert.match(await page.text(), /Find your sip/);
+    assert.match(await page.text(), /Find Your Drink/);
     const response = await fetch(`${base}/api/kiosk/orders`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lines: [{ menuItemId: 1, quantity: 1, sweetness: 75, ice: 'Regular', toppings: [] }] })
@@ -155,5 +155,5 @@ test('customer kiosk is public and can submit orders without an employee session
     assert.equal(result.order_id, 10);
     assert.equal(result.total, 5.25);
     const insert = db.calls.find(call => call.sql.includes('INSERT INTO customer_orders'));
-    assert.equal(insert.values[1], null, 'kiosk order should not be attributed to a cashier');
+    assert.equal(insert.values[1], 6, 'kiosk orders use the dedicated kiosk employee from the current app');
 });
