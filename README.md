@@ -139,8 +139,14 @@ this page returns there after authentication. A signed-in customer can see their
 own rank, Lifetime Points, and separate redeemable balance, and can choose or
 change their public display name. Zero-point customers receive a clear unranked
 state. Refresh preserves unsaved name edits; a successful save refreshes the
-ranking. To preview sample leaderboard
-records without changing team data, run `node test/leaderboard-preview.js`
+ranking.
+
+The kiosk and personal leaderboard panel also show progress toward the next
+reward using the redeemable balance and the server's existing reward catalog.
+Lifetime Points do not determine reward eligibility. Reaching the highest tier
+shows a completed indicator; checkout still validates the order subtotal.
+
+To preview sample leaderboard records without changing team data, run `node test/leaderboard-preview.js`
 from `webapp` and open `http://localhost:3002/leaderboard`. The optional
 `/preview/customer` shortcut uses a local test session; it exists only in this
 preview script and is never registered by the production server.

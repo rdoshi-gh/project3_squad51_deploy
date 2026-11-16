@@ -171,7 +171,7 @@ legend { font-weight: 600; padding: 0 8px; }
 .kiosk-weather-detail { display: block; color: #52654f; font-size: 11px; line-height: 1.5; }
 .kiosk-weather-credit { margin-left: auto; color: #52654f; font-size: 10px !important; text-underline-offset: 3px; }
 
-.kiosk-topbar { position: sticky; top: 0; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 78px; padding: 14px max(5%, calc((100% - 1150px) / 2)); border-bottom: 1px solid #e8ece6; background: rgb(255 255 255 / 94%); box-shadow: 0 4px 18px #233c2a08; backdrop-filter: blur(12px); }
+.kiosk-topbar { position: sticky; top: 0; z-index: 9; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; min-height: 78px; padding: 14px max(5%, calc((100% - 1150px) / 2)); border-bottom: 1px solid #e8ece6; background: rgb(255 255 255 / 94%); box-shadow: 0 4px 18px #233c2a08; backdrop-filter: blur(12px); }
 .kiosk-brand { display: flex; align-items: center; gap: 12px; color: var(--k-green); text-decoration: none; }
 .kiosk-brand-mark { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 14px; background: var(--k-light-green); color: var(--k-green); font-size: 25px; }
 .kiosk-brand strong, .kiosk-brand small { display: block; }
@@ -312,7 +312,7 @@ legend { font-weight: 600; padding: 0 8px; }
     .kiosk-menu-grid { grid-template-columns: 1fr; }
     .kiosk-drink-card { min-height: 0; }
     .kiosk-drink-art, .kiosk-drink-art img { min-height: 135px; }
-    .kiosk-topbar .portal-back { display: none; }
+    .kiosk-topbar .portal-back { white-space: normal; }
     .kiosk-dialog { padding: 22px 18px; }
     .kiosk-dialog .kiosk-topping-options { grid-template-columns: 1fr; }
 }
@@ -325,6 +325,14 @@ legend { font-weight: 600; padding: 0 8px; }
 @media (prefers-reduced-motion: reduce) {
     .kiosk-page *, .kiosk-page *::before, .kiosk-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+/* Progress toward rewards uses spendable points, independently of Lifetime Points. */
+.reward-progress { margin-top: 20px; padding: 16px 18px; border: 1px solid var(--k-border); border-radius: 12px; background: #f0f5ef; color: var(--k-ink); }
+.reward-progress h3 { margin: 0 0 8px; font-size: 18px; }
+.reward-progress p { margin: 6px 0 0; font-size: 14px; line-height: 1.55; }
+.reward-progress progress { display: block; width: 100%; height: 12px; margin: 12px 0; accent-color: var(--k-green); }
+.reward-progress-available { color: var(--k-green); font-weight: 700; }
+.reward-progress .reward-progress-note { color: #526157; font-size: 12px; }
+
 /* Rewards leaderboard uses the customer kiosk's colors and controls. */
 .leaderboard-page { padding-bottom: 32px; }
 .leaderboard-nav { display: flex; flex-wrap: wrap; gap: 10px; }

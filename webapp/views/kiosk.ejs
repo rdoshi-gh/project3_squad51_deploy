@@ -36,6 +36,7 @@
                 </form>
                 <% if (customer) { %>
                 <p class="kiosk-welcome-note">You're signed in. This order earns points, and you can redeem them at checkout.</p>
+                <div data-reward-progress hidden></div>
                 <% } else if (googleEnabled) { %>
                 <a class="kiosk-rewards-signin" href="/auth/google/customer">Sign in with Google to earn points</a>
                 <p class="kiosk-welcome-note">Optional. No account needed. Just good drinks.</p>
@@ -57,6 +58,7 @@
             </div>
             <div class="kiosk-hero-art" aria-hidden="true"></div>
         </section>
+        <div data-reward-progress hidden></div>
         <section id="kiosk-menu" class="kiosk-menu-section" aria-labelledby="kiosk-menu-title">
             <div class="kiosk-section-heading"><div><p class="kiosk-eyebrow">Our Menu</p><h2 id="kiosk-menu-title" data-i18n="menu.title">Find Your Drink</h2></div><p data-i18n="menu.instructions">Choose a drink, then customize every detail.</p></div>
             <div id="kiosk-message" class="kiosk-message" role="alert"></div>

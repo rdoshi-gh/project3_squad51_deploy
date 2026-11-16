@@ -1,5 +1,5 @@
 (() => {
-    const { h, api, send, numeric, announce } = POS;
+    const { h, api, send, numeric, announce, rewardProgress } = POS;
     const results = document.getElementById('leaderboard-results');
     const error = document.getElementById('leaderboard-error');
     const refresh = document.getElementById('leaderboard-refresh');
@@ -8,6 +8,7 @@
     const nameInput = document.getElementById('leaderboard-display-name');
     const saveName = document.getElementById('leaderboard-save-name');
     const nameMessage = document.getElementById('leaderboard-name-message');
+    const progressHost = document.getElementById('leaderboard-reward-progress');
     let loading = false, saving = false, nameDirty = false;
 
     function renderPersonal(me) {
@@ -17,6 +18,8 @@
             nameInput.value = '';
             nameDirty = false;
             nameMessage.textContent = '';
+            progressHost.replaceChildren();
+            progressHost.hidden = true;
             return;
         }
         const rank = document.getElementById('leaderboard-my-rank');
@@ -55,6 +58,16 @@
             const data = await api('/api/kiosk/leaderboard');
             renderLeaders(data.leaders);
             renderPersonal(data.me);
+            if (data.me) {
+                // Reward progress is optional: a catalog failure must not hide rankings.
+                let progress = null;
+                try {
+                    const catalog = await api('/api/kiosk/rewards');
+                    if (catalog.signedIn) progress = rewardProgress(data.me.points, catalog.rewards);
+                } catch { /* Refresh retries the catalog along with the leaderboard. */ }
+                progressHost.replaceChildren(...(progress ? [progress] : []));
+                progressHost.hidden = !progress;
+            }
             announce('Leaderboard updated.');
         } catch (err) {
             error.textContent = err.message;

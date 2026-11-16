@@ -171,3 +171,24 @@ test('shared accessibility and translation preserve customer names and editable 
     d.getElementById('accessibility-language').dispatchEvent(new w.Event('change'));
     assert.equal(d.querySelector('.leaderboard-name').textContent, 'Private Display Name');
 });
+
+test('personal reward progress uses the redeemable balance rather than Lifetime Points', async t => {
+    const { d } = await openLeaderboard(t, async url => json(url === '/api/kiosk/rewards'
+        ? { signedIn: true, rewards: [{ points: 25, label: '$2 off your order' }, { points: 50, label: '$5 off your order' }] }
+        : { leaders, me: { ...me, points: 17, lifetimePoints: 500 } }));
+    await until(() => !d.getElementById('leaderboard-reward-progress').hidden);
+    assert.equal(d.getElementById('leaderboard-my-points').textContent, '500');
+    assert.match(d.getElementById('leaderboard-reward-progress').textContent, /8 more points until \$2 off your order/);
+});
+
+test('catalog failure leaves the leaderboard and personal rank available', async t => {
+    const { d } = await openLeaderboard(t, async url => {
+        if (url === '/api/kiosk/rewards') throw new Error('Catalog unavailable.');
+        return json({ leaders, me });
+    });
+    await until(() => !d.getElementById('leaderboard-refresh').disabled);
+    assert.equal(d.getElementById('leaderboard-personal').hidden, false);
+    assert.equal(d.getElementById('leaderboard-reward-progress').hidden, true);
+    assert.equal(d.querySelectorAll('tbody tr').length, 3);
+    assert.equal(d.getElementById('leaderboard-error').hidden, true);
+});
