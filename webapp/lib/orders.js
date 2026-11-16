@@ -1,4 +1,5 @@
 const { InputError, number, id } = require('./validation');
+const { findReward, applyReward, pointsFor } = require('./rewards');
 
 const SIZE_FACTORS = Object.freeze({ Small: 0.8, Regular: 1, Large: 1.25 });
 const ICE_LEVELS = ['No', 'Light', 'Regular', 'Extra'];
@@ -43,15 +44,15 @@ function buildOrder(raw, menu) {
 }
 
 
-// Loyalty: customers earn 1 point per whole dollar spent.
-const pointsFor = total => Math.floor(total);
-
-async function saveOrder(db, employeeId, raw, customerName = '', { customerId } = {}) {
+async function saveOrder(db, employeeId, raw, customerName = '', { customerId, rewardId } = {}) {
+    const reward = findReward(rewardId);
+    if (reward && !customerId) throw new InputError('Sign in with Google to redeem rewards.', 401);
     return db.transaction(async client => {
         const orderId = await db.nextId(client, 'customer_orders', 'order_id');
         let itemId = await db.nextId(client, 'order_items', 'order_item_id');
         const menu = (await client.query('SELECT menu_item_id, name, category, price FROM menu_items')).rows;
         const order = buildOrder(raw, menu);
+        const { discountCents, totalCents } = applyReward(order.totalCents, reward);
         const allMenuIds = [...new Set(order.lines.flatMap(line => [line.menuItemId, ...line.toppings]))];
         const recipeRows = (await client.query(`SELECT r.menu_item_id, r.inventory_item_id, r.quantity_required, i.name AS ingredient_name
             FROM recipes r JOIN inventory_items i USING (inventory_item_id)
@@ -90,8 +91,20 @@ async function saveOrder(db, employeeId, raw, customerName = '', { customerId } 
                 throw new InputError(`Not enough inventory: ${item ? `${item.name} (${item.unit})` : 'an ingredient is unavailable'}.`, 409);
             }
         }
+        // Spend and earn points in one guarded update before any order rows are written.
+        // The points >= spent check makes concurrent redemptions of the same balance fail safely.
+        const pointsRedeemed = reward ? reward.points : 0;
+        const pointsEarned = pointsFor(totalCents / 100);
+        let points;
+        if (customerId) {
+            const updated = await client.query(`UPDATE customers SET points = points - $1 + $2
+                WHERE customer_id = $3 AND points >= $1 RETURNING points`, [pointsRedeemed, pointsEarned, customerId]);
+            if (updated.rows.length) points = Number(updated.rows[0].points);
+            else if (reward) throw new InputError(`You need ${reward.points} points to redeem ${reward.label}.`, 409);
+        }
+        // total_price is what the customer paid, so revenue reports reflect redeemed discounts.
         const result = await client.query(`INSERT INTO customer_orders (order_id, employee_id, order_timestamp, total_price)
-            VALUES ($1, $2, NOW(), $3) RETURNING order_id, order_timestamp`, [orderId, employeeId, order.totalCents / 100]);
+            VALUES ($1, $2, NOW(), $3) RETURNING order_id, order_timestamp`, [orderId, employeeId, totalCents / 100]);
         const drinkIds = new Set(order.lines.map(line => line.menuItemId));
         for (const line of order.lines) {
             await client.query(`INSERT INTO order_items
@@ -113,13 +126,9 @@ async function saveOrder(db, employeeId, raw, customerName = '', { customerId } 
             await client.query('UPDATE inventory_items SET quantity = quantity - $1::numeric WHERE inventory_item_id = $2', [need.needed, need.inventory_item_id]);
         }
         // Customer name is intentionally request/session-level only in Sprint 2.
-        const total = order.totalCents / 100;
-        const saved = { ...result.rows[0], total, customerName: customerName || undefined };
-        if (customerId) {
-            const earned = pointsFor(total);
-            const updated = await client.query('UPDATE customers SET points = points + $1 WHERE customer_id = $2 RETURNING points', [earned, customerId]);
-            if (updated.rows.length) return { ...saved, pointsEarned: earned, points: updated.rows[0].points };
-        }
+        const saved = { ...result.rows[0], total: totalCents / 100, customerName: customerName || undefined };
+        if (reward) Object.assign(saved, { subtotal: order.totalCents / 100, discount: discountCents / 100, reward: reward.label });
+        if (points !== undefined) Object.assign(saved, { pointsRedeemed, pointsEarned, points });
         return saved;
     });
 }

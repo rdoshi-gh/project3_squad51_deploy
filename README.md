@@ -115,6 +115,16 @@ creates a `customers` row. Each kiosk order earns 1 point per whole dollar,
 credited in the same transaction as the order. Customer sessions last 15 minutes
 and end after checkout, since the kiosk is shared.
 
+**Redeeming points.** At checkout, a signed-in customer can apply one reward
+from the catalog in `webapp/lib/rewards.js`: 25 points for $2 off, 50 points
+for $5 off, or 100 points for $12 off. The server validates the reward ID, rejects
+rewards larger than the order subtotal, and spends and earns points in one guarded
+`UPDATE ... WHERE points >= cost` inside the order transaction, so a balance can't
+go negative or be spent twice. Points are earned on the amount actually paid, and
+`customer_orders.total_price` stores that discounted total so revenue reports
+reflect redemptions. `GET /api/kiosk/rewards` returns the catalog and the
+signed-in customer's balance. Guests cannot redeem.
+
 Setup:
 
 1. Run `database/add_customers.sql` once.
@@ -271,3 +281,18 @@ translation, weather, personal assistant, accessibility-persona validation,
 user studies, and the team's approved beyond features remain separate work.
 The assignment also requires version control in the class GitHub organization;
 coordinate how this deployment repository mirrors or connects to that repository.
+
+### Kiosk weather (OpenWeather)
+
+The customer kiosk displays local conditions in a small card on its welcome and
+menu screens. Set `OPENWEATHER_API_KEY` in `webapp/.env` for local development,
+or in the web service's environment settings for deployment, then restart the
+app. Get a key from [OpenWeather](https://home.openweathermap.org/api_keys).
+The key is used only by the server and is never sent to the browser.
+
+The default location is College Station, TX. To change the store location, set
+`OPENWEATHER_LAT`, `OPENWEATHER_LON`, and `OPENWEATHER_LOCATION` together.
+Temperatures display in Fahrenheit. Current readings are cached for ten minutes;
+failed requests back off for one minute. If the key is missing or the provider
+is unavailable, the card shows a friendly unavailable message and ordering
+continues normally. No customer location permission is needed.
