@@ -27,6 +27,19 @@ async function openFixture() {
             INSERT INTO order_items VALUES (1,1,1,2),(2,1,2,2),(3,2,3,1);
             INSERT INTO reorder_requests VALUES (1,2,4,'2026-10-02 10:00:00');
         `);
+        // Keep schedule test data connection-local, like the other fixture tables.
+        await client.query(`CREATE TEMP TABLE employee_shifts (
+            shift_id SERIAL PRIMARY KEY,
+            employee_id INTEGER NOT NULL REFERENCES employees(employee_id),
+            week_start DATE NOT NULL CHECK (EXTRACT(ISODOW FROM week_start) = 1),
+            shift_date DATE NOT NULL,
+            start_time TIME NOT NULL,
+            end_time TIME NOT NULL,
+            role TEXT NOT NULL CHECK (role IN ('Manager', 'Cashier')),
+            status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+            CHECK (shift_date BETWEEN week_start AND week_start + 6),
+            CHECK (end_time > start_time)
+        ) ON COMMIT DROP`);
         const db = {
             query: async (sql, values = []) => (await client.query(sql, values)).rows,
             async nextId(connection, table, column) {

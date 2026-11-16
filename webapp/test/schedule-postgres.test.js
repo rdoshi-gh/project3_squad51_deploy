@@ -1,0 +1,35 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { openFixture } = require('./helpers/fixture');
+const { saveShift, deleteShift, readSchedule, publishWeek, copyWeek } = require('../lib/schedule');
+
+test('PostgreSQL schedule: draft isolation, overlap, edit/delete, publish, copy and empty publication', { skip: process.env.RUN_DB_TESTS !== '1' }, async t => {
+    const fixture = await openFixture();
+    t.after(() => fixture.close());
+    const { db } = fixture;
+    const week = '2026-11-16';
+    const draft = { employee_id: 2, week_start: week, shift_date: week, start_time: '09:00', end_time: '12:00', role: 'Cashier' };
+    const first = await saveShift(db, draft);
+    assert.equal((await readSchedule(db, week, false)).shifts.length, 0);
+    await assert.rejects(saveShift(db, { ...draft, start_time: '11:00' }), error => error.status === 409);
+    const second = await saveShift(db, { ...draft, start_time: '12:00', end_time: '15:00' });
+    await publishWeek(db, week);
+    assert.equal((await readSchedule(db, week, false)).shifts.length, 2);
+    await saveShift(db, { ...draft, start_time: '08:00' }, first.shift_id);
+    assert.equal((await readSchedule(db, week, false)).shifts[0].start_time, '09:00');
+    await deleteShift(db, second.shift_id);
+    assert.equal((await readSchedule(db, week, false)).shifts.length, 2);
+    await publishWeek(db, week);
+    const published = await readSchedule(db, week, false);
+    assert.equal(published.shifts.length, 1);
+    assert.equal(published.shifts[0].start_time, '08:00');
+    await assert.rejects(deleteShift(db, published.shifts[0].shift_id), error => error.status === 404);
+    assert.equal((await copyWeek(db, '2026-11-23')).count, 1);
+    await assert.rejects(copyWeek(db, '2026-11-23'), error => error.status === 409);
+    const copied = await readSchedule(db, '2026-11-23', true);
+    assert.equal(copied.shifts[0].shift_date, '2026-11-23');
+    assert.equal(copied.shifts[0].status, 'draft');
+    await deleteShift(db, first.shift_id);
+    await publishWeek(db, week);
+    assert.equal((await readSchedule(db, week, false)).shifts.length, 0);
+});

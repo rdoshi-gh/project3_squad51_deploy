@@ -57,7 +57,7 @@ async function openPage(t, view, { hash = '', language = 'es', role = 'manager' 
     } };
 }
 
-for (const view of ['index', 'login', 'cashier', 'manager', 'kitchen', 'kitchen-login', 'kiosk', 'leaderboard', 'error', 'user']) {
+for (const view of ['index', 'login', 'cashier', 'manager', 'kitchen', 'kiosk', 'leaderboard', 'error', 'user']) {
     test(`${view} renders exactly one accessibility menu and shared translation feedback`, async () => {
         const html = await ejs.renderFile(path.join(__dirname, `../views/${view}.ejs`), locals);
         const dom = new JSDOM(html);
@@ -76,7 +76,7 @@ for (const view of ['index', 'login', 'cashier', 'manager', 'kitchen', 'kitchen-
     });
 }
 
-for (const [view, options] of [['index', {}], ['login', { role: 'cashier' }], ['kitchen-login', {}], ['cashier', {}], ['manager', { hash: '#orders' }], ['kitchen', {}]]) {
+for (const [view, options] of [['index', {}], ['login', { role: 'cashier' }], ['cashier', {}], ['manager', { hash: '#orders' }], ['kitchen', {}]]) {
     test(`${view} restores all saved preferences and translates dynamic content without translating employee names`, async t => {
         const ui = await openPage(t, view, options);
         await waitFor(() => ui.batches.length && ui.d.getElementById('translation-feedback').hidden);

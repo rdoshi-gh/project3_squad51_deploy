@@ -13,11 +13,6 @@ async function api(url, options = {}) {
     let data;
     try { data = await response.json(); }
     catch { throw new Error(`Unexpected response from server (${response.status}).`); }
-    if (response.status === 401 || response.status === 403) {
-        // Employee-selection sessions expire after one hour in the existing app.
-        location.href = '/kitchen/login';
-        throw new Error('Your session expired. Sign in again.');
-    }
     if (!response.ok) throw new Error(data.error || `Request failed (${response.status}).`);
     return data;
 }
@@ -125,12 +120,6 @@ async function refreshOrders() {
 }
 
 document.getElementById('refresh-button').addEventListener('click', refreshOrders);
-document.getElementById('logout-button').addEventListener('click', async () => {
-    try {
-        const result = await api('/api/logout', { method: 'POST' });
-        location.href = result.location || '/';
-    } catch (error) { message.textContent = error.message; }
-});
 refreshOrders();
 setInterval(() => { if (!document.hidden) refreshOrders(); }, 5000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshOrders(); });

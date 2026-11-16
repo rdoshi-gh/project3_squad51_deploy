@@ -11,6 +11,7 @@ const { REWARDS } = require('./lib/rewards');
 const { getLeaderboard, updateDisplayName } = require('./lib/leaderboard');
 const { createTranslator } = require('./lib/translation');
 const { createWeather } = require('./lib/weather');
+const schedule = require('./lib/schedule');
 const {
     getKitchenOrders,
     markKitchenOrderReady
@@ -66,9 +67,11 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     }));
     app.post('/kiosk/sign-out', (req, res) => { signOutCustomer(res); res.redirect(303, '/kiosk'); });
 
-    for (const view of ['manager', 'cashier', 'kitchen']) {
+    app.get('/kitchen', (req, res) => res.render('kitchen'));
+    app.get('/kitchen/login', (req, res) => res.redirect('/kitchen'));
+    for (const view of ['manager', 'cashier']) {
         app.get(`/${view}/login`, (req, res) =>
-            res.render(view === 'kitchen' ? 'kitchen-login' : 'login', { view })
+            res.render('login', { view })
         );
 
         app.get(`/${view}`, (req, res) => {
@@ -84,12 +87,12 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         fetchImpl: translationFetch, contactEmail: (env || process.env).MYMEMORY_EMAIL || ''
     })));
     app.get('/api/login-employees', route(async (req, res) => {
-        if (!['cashier', 'manager', 'kitchen'].includes(req.query.view)) throw new InputError('Choose a valid employee view.');
+        if (!['cashier', 'manager'].includes(req.query.view)) throw new InputError('Choose a valid employee view.');
         res.json(await db.query(`SELECT employee_id, name, role FROM employees ${req.query.view === 'manager' ? "WHERE LOWER(role) = 'manager'" : ''} ORDER BY name, employee_id`));
     }));
     app.post('/api/session', route(async (req, res) => {
         const view = req.body.view;
-        if (!['cashier', 'manager', 'kitchen'].includes(view)) throw new InputError('Choose a valid employee view.');
+        if (!['cashier', 'manager'].includes(view)) throw new InputError('Choose a valid employee view.');
         const [employee] = await db.query('SELECT employee_id, name, role FROM employees WHERE employee_id = $1', [id(req.body.employeeId)]);
         if (!employee || (view === 'manager' && employee.role.toLowerCase() !== 'manager')) throw new InputError('Select an employee with the required role.', 403);
         session.signIn(res, employee, view);
@@ -131,7 +134,7 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         res.status(201).json(order);
     }));
     app.post('/api/orders', requireSession('cashier'), route(async (req, res) => res.status(201).json(await saveOrder(db, req.session.employeeId, req.body.lines))));
-    app.use('/api/kitchen', requireSession('kitchen'));
+    // The shared kitchen display and its ready action do not require sign-in.
 
     app.get('/api/kitchen/orders', route(async (req, res) => {
         res.json(await getKitchenOrders(db));
@@ -140,7 +143,14 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
     app.patch('/api/kitchen/orders/:id/ready', route(async (req, res) => {
         res.json(await markKitchenOrderReady(db, id(req.params.id)));
     }));
+    app.get('/api/schedule', requireSession('cashier'), route(async (req, res) => res.json(await schedule.readSchedule(db, req.query.week, false))));
     app.use('/api/manager', requireSession('manager'));
+    app.get('/api/manager/schedule', route(async (req, res) => res.json(await schedule.readSchedule(db, req.query.week, true))));
+    app.post('/api/manager/schedule/shifts', route(async (req, res) => res.status(201).json(await schedule.saveShift(db, req.body))));
+    app.patch('/api/manager/schedule/shifts/:id', route(async (req, res) => res.json(await schedule.saveShift(db, req.body, id(req.params.id)))));
+    app.delete('/api/manager/schedule/shifts/:id', route(async (req, res) => res.json(await schedule.deleteShift(db, id(req.params.id)))));
+    app.post('/api/manager/schedule/publish', route(async (req, res) => res.json(await schedule.publishWeek(db, req.body.week))));
+    app.post('/api/manager/schedule/copy', route(async (req, res) => res.json(await schedule.copyWeek(db, req.body.week))));
     app.get('/api/manager/range', route(async (req, res) => res.json(await getRange(db))));
     app.get('/api/manager/reports', route(async (req, res) => res.json(await getReport(db, req.query.type, req.query.start, req.query.end))));
     app.get('/api/manager/dashboard', route(async (req, res) => {

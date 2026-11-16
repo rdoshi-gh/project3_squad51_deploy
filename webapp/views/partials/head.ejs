@@ -9,5 +9,6 @@
     <script src="/static/common.js" defer></script>
     <script src="/static/accessibility.js" defer></script>
     <script src="/static/translation.js" defer></script>
+    <% if (script === 'manager' || script === 'cashier') { %><link rel="stylesheet" href="/static/schedule.css"><script src="/static/schedule.js" defer></script><% } %>
     <% if (script) { %><script src="/static/<%= script %>.js" defer></script><% } %>
 </head>
