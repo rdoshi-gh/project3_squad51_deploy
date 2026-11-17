@@ -97,6 +97,55 @@ test('deployment diagnostics identify connection failures without leaking email,
     assert.doesNotMatch(logs[0], /private@example|https:|PrivateText/);
 });
 
+test('provider HTTP 429 stops queued lookups, shares cooldown across clients, and recovers after Retry-After', async () => {
+    let time = 0, calls = 0, limited = true;
+    const logs = [];
+    const handler = createTranslator({ now: () => time, logger: { warn: (...args) => logs.push(args.join(' ')) }, fetchImpl: async () => {
+        calls++;
+        if (limited) return { ok: false, status: 429, headers: new Headers({ 'Retry-After': '90' }) };
+        return providerResponse('Té');
+    } });
+    const batch = Array.from({ length: 32 }, (_, index) => `Drink ${index}`);
+    const first = await request(handler, batch);
+    assert.equal(calls, 4, 'only the four already in-flight requests reach the provider');
+    assert.deepEqual(first, { translations: Array(32).fill(null), retryAfterSeconds: 90 });
+    assert.match(logs[0], /"httpStatus":429/);
+    assert.match(logs[0], /"retryAfterSeconds":90/);
+    time = 10000;
+    assert.deepEqual(await request(handler, ['New drink'], 'es', 'another-client'), { translations: [null], retryAfterSeconds: 80 });
+    assert.equal(calls, 4, 'a different browser cannot bypass the shared provider cooldown');
+    limited = false; time = 90000;
+    assert.deepEqual(await request(handler, ['New drink']), { translations: ['Té'] });
+    assert.equal(calls, 5);
+});
+
+test('provider cooldown preserves cached translations and returns Retry-After without leaking provider headers', async () => {
+    let limited = false, calls = 0;
+    const handler = createTranslator({ now: () => 0, logger: { warn() {} }, fetchImpl: async () => {
+        calls++;
+        return limited ? { ok: false, status: 429, headers: new Headers({ 'Retry-After': '60', 'X-Private': 'hidden' }) } : providerResponse('Leche');
+    } });
+    await request(handler, ['Milk']);
+    limited = true;
+    const headers = {};
+    let result;
+    await handler({ body: { target: 'es', texts: ['Milk', 'Tea'] }, ip: 'test' }, {
+        set: (key, value) => { headers[key] = value; }, json: data => { result = data; }
+    });
+    assert.deepEqual(result, { translations: ['Leche', null], retryAfterSeconds: 60 });
+    assert.deepEqual(headers, { 'Retry-After': '60' });
+    assert.deepEqual(await request(handler, ['Milk']), { translations: ['Leche'] });
+    assert.equal(calls, 2);
+});
+
+test('provider Retry-After accepts HTTP dates and safely defaults absent or invalid headers', async () => {
+    const time = Date.parse('2026-11-17T12:00:00Z');
+    for (const [header, expected] of [[new Date(time + 120000).toUTCString(), 120], [undefined, 60], ['invalid', 60], ['0', 60]]) {
+        const handler = createTranslator({ now: () => time, logger: { warn() {} }, fetchImpl: async () => ({ ok: false, status: 429, headers: new Headers(header === undefined ? {} : { 'Retry-After': header }) }) });
+        assert.equal((await request(handler, ['Tea'])).retryAfterSeconds, expected);
+    }
+});
+
 async function waitFor(check) {
     for (let i = 0; i < 150; i++) {
         if (check()) return;
@@ -193,6 +242,46 @@ test('translation failure leaves English usable, offers retry, and recovers with
     ui.recover(); ui.d.getElementById('translation-retry').click();
     await waitFor(() => ui.d.querySelector('.kiosk-drink-card h3').textContent === 'Té de guayaba nuevo');
     assert.equal(ui.d.getElementById('translation-retry').hidden, true);
+});
+
+test('provider cooldown disables Retry, keeps successful translations, and allows recovery without resetting the cart', async t => {
+    const ui = await kiosk(t);
+    const partial = ui.d.createElement('p');
+    partial.textContent = 'Cached success';
+    ui.d.body.prepend(partial);
+    let time = Date.now(), resume, calls = 0, limited = true;
+    ui.w.Date.now = () => time;
+    const baseTimer = ui.w.setTimeout.bind(ui.w);
+    ui.w.setTimeout = (callback, delay, ...args) => {
+        if (delay >= 1000) { resume = callback; return 999999; }
+        return baseTimer(callback, delay, ...args);
+    };
+    const baseFetch = ui.w.fetch;
+    ui.w.fetch = async (url, options) => {
+        if (url !== '/api/translate') return baseFetch(url, options);
+        calls++;
+        if (!limited) return baseFetch(url, options);
+        const { texts } = JSON.parse(options.body);
+        return { ok: true, json: async () => ({ translations: texts.map(text => text === 'Cached success' ? 'Traducción guardada' : null), retryAfterSeconds: 60 }) };
+    };
+    ui.submitName();
+    ui.d.querySelector('.kiosk-add-drink').click();
+    ui.d.querySelector('#kiosk-dialog form').dispatchEvent(new ui.w.Event('submit', { cancelable: true }));
+    const cart = ui.d.getElementById('kiosk-cart-total').textContent;
+    ui.language('es');
+    const retry = ui.d.getElementById('translation-retry');
+    await waitFor(() => !retry.hidden && retry.disabled);
+    assert.match(ui.d.getElementById('translation-status').textContent, /rate-limited/);
+    assert.equal(partial.textContent, 'Traducción guardada');
+    retry.click(); await new Promise(resolve => setTimeout(resolve, 100));
+    assert.equal(calls, 1);
+    limited = false; time += 61000; resume();
+    assert.equal(retry.disabled, false);
+    retry.click();
+    await waitFor(() => ui.d.getElementById('translation-feedback').hidden);
+    assert.equal(ui.d.getElementById('kiosk-cart-total').textContent, cart);
+    ui.language('en');
+    assert.equal(ui.d.querySelector('.kiosk-drink-card h3').textContent, 'New Guava Tea');
 });
 
 test('switching to English during a pending request prevents stale Spanish writes', async t => {

@@ -326,10 +326,19 @@ always retains both language names so users can return to English. Successful
 segments remain cached when retrying. A production service with higher traffic
 may need a translation provider with a larger quota.
 
+When MyMemory responds with HTTP 429, the server stops queued provider lookups
+and shares a cooldown across clients in that server process. It honors the
+provider's `Retry-After` header, or waits one minute when no valid reset time is
+provided. Cached translations remain available. The browser shows a bilingual
+rate-limit notice and disables Retry until the cooldown ends; it does not retry
+automatically. This reduces repeated requests but cannot lift a provider quota
+or guarantee that the provider accepts requests after the waiting period.
+
 For deployment troubleshooting, retry Spanish on the live app and inspect Render's
 Logs for `Translation provider failure:`. The entry records whether a contact
 email is configured, how many segments failed, and the failure stage plus available
-HTTP/provider status or connection error code. It excludes the email value,
+HTTP/provider status or connection error code. Rate-limit failures also include
+the remaining cooldown in `retryAfterSeconds`. It excludes the email value,
 source text, and request URLs. These diagnostics identify failures; they do not
 resolve provider limits or connection problems automatically.
 

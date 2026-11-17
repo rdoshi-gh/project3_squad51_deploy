@@ -162,17 +162,27 @@
         document.documentElement.lang = language;
         observe();
     }
+    let retryAt = 0, retryTimer;
     function feedback(state) {
+        clearTimeout(retryTimer);
+        const waitSeconds = Math.max(0, Math.ceil((retryAt - Date.now()) / 1000));
         panel.hidden = state === 'off' || state === 'ready';
         retry.hidden = state !== 'error';
+        retry.disabled = state === 'error' && waitSeconds > 0;
         status.textContent = state === 'loading' ? 'Traduciendo al español… / Translating to Spanish…'
-            : state === 'error' ? 'No se pudo traducir todo. Parte del texto sigue en inglés. Intenta de nuevo o elige English. / Some text could not be translated. Retry or choose English.'
+            : state === 'error' ? (waitSeconds > 0
+                ? `El servicio de traducción ha limitado las solicitudes. Espera al menos ${waitSeconds} segundos antes de reintentar o elige English. / Translation service is rate-limited. Wait at least ${waitSeconds} seconds before retrying, or choose English.`
+                : 'No se pudo traducir todo. Parte del texto sigue en inglés. Intenta de nuevo o elige English. / Some text could not be translated. Retry or choose English.')
                 : '';
+        if (state === 'error' && waitSeconds > 0) {
+            retryTimer = setTimeout(() => { if (language === 'es' && failed) feedback('error'); }, Math.min(waitSeconds * 1000, 2147483647));
+        }
     }
     async function refresh() {
         if (running) { dirty = true; return; }
         if (language !== 'es') { paint(); feedback('off'); return; }
         if (failed) { paint(); return; }
+        if (retryAt > Date.now()) { failed = true; paint(); feedback('error'); return; }
         running = true; dirty = false;
         const generation = revision;
         // Apply cached/reviewed labels immediately while new phrases load.
@@ -193,9 +203,18 @@
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ target: 'es', texts })
                 });
-                if (!response.ok) throw new Error('Translation request failed.');
+                if (!response.ok) {
+                    const retrySeconds = Number(response.headers?.get('retry-after'));
+                    if (response.status === 429 && generation === revision && language === 'es' && Number.isFinite(retrySeconds) && retrySeconds > 0) {
+                        retryAt = Math.max(retryAt, Date.now() + retrySeconds * 1000);
+                    }
+                    throw new Error('Translation request failed.');
+                }
                 const data = await response.json();
                 if (!Array.isArray(data.translations) || data.translations.length !== texts.length) throw new Error('Invalid translations.');
+                if (generation === revision && language === 'es' && Number.isFinite(data.retryAfterSeconds) && data.retryAfterSeconds > 0) {
+                    retryAt = Math.max(retryAt, Date.now() + data.retryAfterSeconds * 1000);
+                }
                 let incomplete = false;
                 data.translations.forEach((value, i) => {
                     if (typeof value !== 'string' || !value.trim()) { incomplete = true; return; }
@@ -227,7 +246,10 @@
         feedback(language === 'es' ? 'loading' : 'off');
         paint(); schedule();
     });
-    retry.addEventListener('click', () => { failed = false; schedule(); });
+    retry.addEventListener('click', () => {
+        if (Date.now() < retryAt) { feedback('error'); return; }
+        failed = false; schedule();
+    });
     // Menu search can match either the original name or its displayed Spanish
     // translation. The database and checkout always use the original item IDs.
     window.POSLanguage = {
