@@ -11,13 +11,14 @@ const { REWARDS } = require('./lib/rewards');
 const { getLeaderboard, updateDisplayName } = require('./lib/leaderboard');
 const { createTranslator } = require('./lib/translation');
 const { createWeather } = require('./lib/weather');
+const { createChatbot } = require('./lib/chatbot');
 const schedule = require('./lib/schedule');
 const {
     getKitchenOrders,
     markKitchenOrderReady
 } = require('./lib/kitchen');
 
-function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express(), fetchImpl, translationFetch, weatherFetch, env } = {}) {
+function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = express(), fetchImpl, translationFetch, weatherFetch, chatFetch, env } = {}) {
     const session = sessions(secret);
     const route = handler => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
     app.disable('x-powered-by');
@@ -82,6 +83,7 @@ function createApp({ db = defaultDb, secret = process.env.SESSION_SECRET, app = 
         });
     }
     app.get('/api/health', (req, res) => res.json({ status: 'ok', app: 'Popping POS' }));
+    app.post('/api/kiosk/chat', route(createChatbot({ db, env, fetchImpl: chatFetch })));
     app.get('/api/kiosk/weather', route(createWeather({ env, fetchImpl: weatherFetch })));
     app.post('/api/translate', route(createTranslator({
         fetchImpl: translationFetch, contactEmail: (env || process.env).MYMEMORY_EMAIL || ''
