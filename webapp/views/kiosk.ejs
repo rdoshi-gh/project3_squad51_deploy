@@ -73,6 +73,16 @@
         <button id="kiosk-review" class="kiosk-checkout" type="button" disabled>Review order <span aria-hidden="true">→</span></button>
     </aside>
     <dialog id="kiosk-dialog" class="kiosk-dialog" aria-labelledby="kiosk-dialog-title"><div id="kiosk-dialog-body"></div></dialog>
+    <button id="kiosk-chat-open" class="kiosk-chat-launcher" type="button" aria-haspopup="dialog" aria-controls="kiosk-chat"><span aria-hidden="true">✿</span> Ask Poppy</button>
+    <dialog id="kiosk-chat" class="kiosk-chat" aria-labelledby="kiosk-chat-title" aria-describedby="kiosk-chat-intro">
+        <header class="kiosk-chat-header"><div><p class="kiosk-eyebrow">A LITTLE HELP WITH YOUR SIP</p><h2 id="kiosk-chat-title">Poppy</h2></div><button id="kiosk-chat-close" type="button" aria-label="Close menu assistant">✕</button></header>
+        <p id="kiosk-chat-intro">Ask about drinks, prices, or how to order. AI answers may be imperfect; check with our team about allergies.</p>
+        <div class="kiosk-chat-suggestions" aria-label="Suggested questions"><button type="button">How do I order?</button><button type="button">What toppings are available?</button><button type="button">How do rewards work?</button></div>
+        <div id="kiosk-chat-log" class="kiosk-chat-log" role="log" aria-label="Menu assistant conversation" aria-live="polite"></div>
+        <p id="kiosk-chat-status" role="status"></p>
+        <form id="kiosk-chat-form"><label for="kiosk-chat-question">Your question</label><div class="kiosk-chat-compose"><input id="kiosk-chat-question" type="text" maxlength="500" placeholder="Help me find my next favorite…" autocomplete="off" required><button id="kiosk-chat-send" type="submit">Send <span aria-hidden="true">↑</span></button></div></form>
+        <footer class="kiosk-chat-footer"><span>AI menu help · Please don’t share personal details.</span><button id="kiosk-chat-clear" type="button">Clear chat</button></footer>
+    </dialog>
     <div id="kiosk-announcement" class="sr-only" role="status" aria-live="polite"></div>
 </body>
 </html>
