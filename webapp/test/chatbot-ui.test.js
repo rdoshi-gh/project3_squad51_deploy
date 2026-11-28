@@ -1,0 +1,30 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const ejs = require('ejs');
+const { JSDOM } = require('jsdom');
+test('Poppy opens, sends follow-ups, renders untrusted replies as text and clears history', async () => {
+    const html = await ejs.renderFile(path.join(__dirname, '../views/kiosk.ejs'), { customer: null, googleEnabled: false, signinError: '' });
+    const dom = new JSDOM(html, { runScripts: 'outside-only', url: 'http://localhost/kiosk' });
+    const w = dom.window, d = w.document, requests = [];
+    const panel = d.getElementById('kiosk-chat');
+    panel.showModal = () => { panel.open = true; };
+    panel.close = () => { panel.open = false; };
+    w.fetch = async (_, options) => { requests.push(JSON.parse(options.body)); return { ok: true, json: async () => ({ reply: '<img src=x onerror=alert(1)> Try tea.' }) }; };
+    w.eval(fs.readFileSync(path.join(__dirname, '../public/static/chatbot.js'), 'utf8'));
+    d.getElementById('kiosk-chat-open').click(); assert.equal(panel.open, true);
+    const ask = async value => {
+        d.getElementById('kiosk-chat-question').value = value;
+        d.getElementById('kiosk-chat-form').dispatchEvent(new w.Event('submit', { cancelable: true }));
+        await new Promise(resolve => setImmediate(resolve));
+    };
+    await ask('What tea?');
+    assert.equal(requests[0].history.length, 0);
+    assert.equal(d.querySelectorAll('#kiosk-chat-log img').length, 0);
+    await ask('What price?'); assert.equal(requests[1].history.length, 2);
+    d.getElementById('kiosk-chat-clear').click();
+    await ask('How do I order?'); assert.equal(requests[2].history.length, 0);
+    d.getElementById('kiosk-chat-close').click(); assert.equal(panel.open, false);
+    dom.window.close();
+});
