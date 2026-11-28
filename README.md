@@ -382,3 +382,34 @@ Temperatures display in Fahrenheit. Current readings are cached for ten minutes;
 failed requests back off for one minute. If the key is missing or the provider
 is unavailable, the card shows a friendly unavailable message and ordering
 continues normally. No customer location permission is needed.
+
+### Poppy kiosk chatbot (TAMUS AI Chat)
+
+Poppy answers menu and ordering questions from a kiosk dialog. Its server request
+includes current public menu names, categories, prices, and ordering/reward rules.
+It cannot modify carts or place orders. Answers are AI generated; ingredient,
+allergy, nutrition, stock and wait-time questions should be checked with staff.
+
+In `webapp/.env` locally (or your hosting service's environment), set:
+
+- `TAMUS_AI_CHAT_API_KEY`: your Texas A&M TAMUS AI Chat key.
+- `TAMUS_AI_CHAT_API_ENDPOINT`: `https://chat-api.tamu.ai` for Texas A&M University.
+- `TAMUS_AI_CHAT_MODEL`: an exact OpenAI model ID returned by your account's
+  `GET /api/models` endpoint. Select a GPT-4.1 mini variant if offered for a small,
+  fast menu assistant; use the exact ID, including any provider prefix.
+
+Restart the server after changes. The implementation uses bearer authentication
+and `POST /api/chat/completions`, as documented in the
+[TAMUS key guide](https://docs.tamus.ai/docs/prod/api-tool/create-and-test-api-key/).
+TAMUS requires at least one chat in its web console before using a key, plus
+creating/updating a chat at least once every 30 days to keep the key usable.
+
+The key stays server-side. Only questions and up to four recent question/answer
+pairs are sent with the menu context; customer accounts, names, orders and cart
+contents are not automatically included. Chat is kept in page memory, clears
+after three minutes without a new question, and clears when the cart becomes
+empty. Users can also select Clear chat. Avoid entering personal information.
+The public endpoint allows 20 requests per minute and three simultaneous requests
+per server process, with bounded messages and a 20-second upstream timeout.
+Multiple deployment instances each have their own quota. Missing configuration
+and upstream failures show a friendly message without breaking ordering.
